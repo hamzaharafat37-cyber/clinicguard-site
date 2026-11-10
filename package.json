@@ -1,0 +1,9 @@
+{
+  "name": "clinicguard-site",
+  "private": true,
+  "description": "ClinicGuard Personal: private daily planner + security guard",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}

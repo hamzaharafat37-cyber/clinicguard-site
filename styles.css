@@ -473,3 +473,31 @@ a{text-decoration:none;color:inherit}
 .early-msg{min-height:22px;margin:16px 0 0;font-weight:700;font-size:14.5px}
 .early-msg.ok{color:#139c7a}.early-msg.err{color:#c2456a}
 @media(max-width:900px){.vault{grid-template-columns:1fr;padding:34px 26px;gap:28px}.early{padding:32px 22px}.early-row{flex-direction:column}}
+
+/* ---------- Account ---------- */
+.tabs-nav .acct-link{margin-left:4px;border-left:1px solid #e3e8f5;border-radius:0 12px 12px 0;padding-left:14px}
+.acct-card{max-width:560px;margin:0 auto}
+.acct-card h2{font-family:Manrope,'DM Sans',system-ui,sans-serif;font-size:clamp(26px,3vw,36px);letter-spacing:-1.2px;margin:8px 0 8px;word-break:break-word}
+.acct-sub{color:#6f7b98;margin:0 0 22px;line-height:1.65;font-size:14.5px}
+.seg{display:flex;background:#f1f3fb;border-radius:14px;padding:5px;margin-bottom:20px}
+.seg button{flex:1;padding:11px;border-radius:10px;font-weight:800;font-size:14px;color:#6b7aa0;transition:background .2s,color .2s,box-shadow .2s}
+.seg button.on{background:#fff;color:#2c3a70;box-shadow:0 4px 14px rgba(60,70,120,.1)}
+.fld{display:block;margin-bottom:14px}
+.fld span{display:block;font-size:13px;font-weight:800;color:#4a5578;margin-bottom:6px}
+.fld .input{width:100%}
+.auth-msg{min-height:22px;margin:14px 0 0;font-weight:700;font-size:14px;color:#c2456a}
+.auth-msg.info{color:#3b6fa8}
+.acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.acct-stat{border:1px solid #e3e8f5;border-radius:18px;padding:16px 18px;background:#fbfcff}
+.acct-stat span{display:block;font-size:12px;font-weight:800;color:#8a94ad;text-transform:uppercase;letter-spacing:1px}
+.acct-stat b{font-size:20px;color:#26325f}
+.acct-upgrade{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:18px 20px;border-radius:20px;background:linear-gradient(140deg,#e9fbfd,#f1efff);border:1px solid #d9eef5;margin-bottom:18px}
+.acct-upgrade b{display:block;color:#26325f}
+.acct-upgrade span{font-size:13.5px;color:#64708f}
+.acct-paid{padding:14px 18px;border-radius:16px;background:#e8f8f1;color:#127a5f;font-weight:700;margin:0 0 18px}
+.acct-actions{display:flex;flex-wrap:wrap;gap:10px}
+.ai-status{font-size:14px;color:#56627f;background:#f5f7fd;border:1px solid #e6eaf5;border-radius:12px;padding:10px 14px;margin:0 0 14px}
+.ai-status:empty{display:none}
+.ai-status a{color:#1da9bd;font-weight:800}
+@media(max-width:600px){.acct-upgrade{flex-direction:column;align-items:stretch}.acct-grid{grid-template-columns:1fr 1fr}}
+[hidden]{display:none!important}

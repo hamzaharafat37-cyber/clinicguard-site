@@ -3,6 +3,7 @@
 // (set ANTHROPIC_API_KEY in Vercel → Project → Settings → Environment Variables).
 // Privacy: request text is not logged or stored here.
 
+const L = require('./_lib');
 const MODEL = 'claude-haiku-5-5';
 const MAX_INPUT = 2000;
 const LIMIT_PER_HOUR = 15; // best-effort per server instance, protects your API bill
@@ -59,6 +60,16 @@ module.exports = async function handler(req, res) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return res.status(503).json({ error: 'AI is not set up yet: the ANTHROPIC_API_KEY environment variable is missing on the server.' });
 
+  // Must be logged in. Free accounts get a few plans per day; Personal is unlimited.
+  if (!L.getSql()) return res.status(503).json({ error: 'Accounts are not set up yet.' });
+  let account;
+  try { await L.ensureSchema(); account = await L.currentUser(req); } catch (e) { console.error('db error:', e.message); return res.status(500).json({ error: 'Could not check your account. Try again.' }); }
+  if (!account) return res.status(401).json({ error: 'Log in to use the AI Planner.', needLogin: true });
+  const paid = account.plan === 'personal';
+  if (!paid && L.aiUsedToday(account) >= L.FREE_AI_PER_DAY) {
+    return res.status(402).json({ error: `You've used your ${L.FREE_AI_PER_DAY} free AI plans for today. Get Personal for unlimited plans.`, needUpgrade: true });
+  }
+
   // Basic rate limit by IP (resets when the server instance restarts)
   const ip = clip((req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket?.remoteAddress || 'unknown', 64);
   const now = Date.now();
@@ -102,7 +113,13 @@ module.exports = async function handler(req, res) {
     const out = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
     const plan = clean(extractJson(out));
     if (!plan.blocks.length) throw new Error('Empty plan');
-    return res.status(200).json(plan);
+    let aiLeft = null;
+    if (!paid) {
+      const used = L.aiUsedToday(account) + 1;
+      await L.q('UPDATE users SET ai_day = $1, ai_count = $2 WHERE id = $3', [L.todayStr(), used, account.id]);
+      aiLeft = Math.max(0, L.FREE_AI_PER_DAY - used);
+    }
+    return res.status(200).json({ ...plan, aiLeft });
   } catch (err) {
     console.error('Planner failed:', err.message);
     return res.status(502).json({ error: 'The AI planner had trouble with that one. Try rewording it and plan again.' });

@@ -27,7 +27,8 @@ vercel dev
 
 - **Home** (`/`): one scrolling page: hero, how it works, a live demo of the app, why, privacy, pricing, FAQ.
 - **Plan your day** (`#/app`): the same app (Today, Guard, Devices, My data) as a full page. Your tasks are the same in both places.
-- **AI Planner** (`#/ai`): paste a messy list, Claude turns it into a plan for today.
+- **AI Planner** (`#/ai`): paste a messy list, Claude turns it into a plan for today (requires a free account).
+- **Account** (`#/account`): sign up, log in, upgrade to Personal with Stripe.
 
 On phones, a bottom bar switches between Home, Plan and AI.
 
@@ -55,3 +56,20 @@ On phones, a bottom bar switches between Home, Plan and AI.
 - `api/plan.js`: serverless AI Planner endpoint (holds the API key)
 - `msp.html`, `msp-styles.css`, `msp-app.js`: original ClinicGuard clinic/MSP concept site (kept for reference, linked in the footer)
 - `assets/`: images used by the MSP concept page
+
+## Accounts, AI and payments (server setup)
+
+Set these in Vercel → Project → Settings → Environment Variables, then redeploy:
+
+| Variable | What it's for | Where it comes from |
+|---|---|---|
+| `DATABASE_URL` | Neon Postgres: user accounts + sessions | Added automatically when you connect Neon in Vercel (Storage) |
+| `ANTHROPIC_API_KEY` | ✨ AI Planner (Claude) | console.anthropic.com |
+| `STRIPE_SECRET_KEY` | Stripe Checkout | dashboard.stripe.com → Developers → API keys (`sk_test_...` for testing) |
+| `PRICE_CENTS` | Optional price override (default `1900` = $19) | Set to `100` for the $1 live test |
+
+- Tables (`users`, `sessions`) are created automatically on the first request.
+- Demo account `demo@demo.com` / `password123!` is created automatically with full paid access (no email verification).
+- Passwords are hashed with scrypt. Sessions are random tokens in an HttpOnly cookie; only a SHA-256 of the token is stored.
+- Free accounts get 3 AI plans per day; Personal (paid) is unlimited.
+- Tasks, devices and streaks still live only in the browser (localStorage).

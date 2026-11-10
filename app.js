@@ -88,8 +88,8 @@
   $$('[data-goto]').forEach(a => a.addEventListener('click', () => setTimeout(() => showTab(a.dataset.goto), 50)));
 
   /* ---------- router: Home is one scrolling page; "Plan your day" (#/app) and "AI Planner" (#/ai) are their own tabs ---------- */
-  const VIEWS = ['home', 'app', 'ai'];
-  const TITLES = { home: 'Plan your day. Guard your life.', app: 'Plan your day', ai: 'AI Planner' };
+  const VIEWS = ['home', 'app', 'ai', 'account'];
+  const TITLES = { home: 'Plan your day. Guard your life.', app: 'Plan your day', ai: 'AI Planner', account: 'Your account' };
   const shell = $('#appShell');
   let current = null;
   const route = () => {
@@ -385,6 +385,7 @@
       ['Passwords you check', '<b>Never stored anywhere</b>', 'Cleared from the screen right after checking'],
       ['Sent over the internet', '<span class="tag-out">Have I Been Pwned (5 characters)</span>', state.pw.lastPrefix ? `Last sent: <code>${esc(state.pw.lastPrefix)}</code> on ${new Date(state.pw.last).toLocaleDateString()}` : 'Nothing sent yet'],
       ['Sent to AI (Claude by Anthropic)', '<span class="tag-out">Only when you press ✨ Plan my day</span>', state.ai.count ? `${state.ai.count} request${state.ai.count > 1 ? 's' : ''} · last: ${state.ai.lastChars} characters on ${new Date(state.ai.last).toLocaleDateString()}` : 'Nothing sent yet'],
+      ['Your account (if logged in)', '<span class="tag-out">ClinicGuard database (Neon)</span>', account.user ? `${esc(account.user.email)} · ${account.user.plan} plan · hashed password · daily AI count` : 'Not logged in: nothing stored'],
       ['Total saved on this device', '<span class="tag-local">localStorage</span>', `${bytes.toLocaleString()} bytes`],
     ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
   };
@@ -400,27 +401,6 @@
     $('#wipeBtn').textContent = '🗑 Erase everything'; renderLedger(); renderToday(); toast('Everything erased from this device.');
   });
 
-  /* ---------- early-access signup (Formspree) ---------- */
-  const earlyForm = $('#earlyForm');
-  earlyForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = $('#earlyEmail').value.trim(), msg = $('#earlyMsg'), btn = $('#earlyBtn');
-    msg.className = 'early-msg';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) {
-      msg.textContent = 'Please enter a valid email address.'; msg.classList.add('err'); $('#earlyEmail').focus(); return;
-    }
-    if (earlyForm.action.includes('REPLACE_ME')) {
-      msg.textContent = 'Signups are being connected. Please check back soon.'; msg.classList.add('err'); return;
-    }
-    btn.disabled = true; btn.textContent = 'Joining…';
-    try {
-      const r = await fetch(earlyForm.action, { method: 'POST', body: new FormData(earlyForm), headers: { Accept: 'application/json' } });
-      if (!r.ok) throw new Error();
-      earlyForm.reset(); msg.textContent = "You're on the list! We'll email you when early access opens."; msg.classList.add('ok');
-      { const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top); }
-    } catch { msg.textContent = "Couldn't sign you up right now. Please try again in a minute."; msg.classList.add('err'); }
-    finally { btn.disabled = false; btn.textContent = 'Join the list'; }
-  });
 
 
   /* ---------- ✨ AI PLANNER (Plus AI preview) ---------- */
@@ -468,6 +448,7 @@
     e.preventDefault();
     const text = $('#dump').value.trim();
     if (text.length < 3) { $('#dump').focus(); toast('Type a few things on your mind first.'); return; }
+    if (!account.user) { goLogin('Log in or create a free account to use the AI Planner.'); return; }
     if (!state.ai.consent && !(await askConsent())) { toast('No problem. Nothing was sent.'); return; }
     const btn = $('#planBtn'); btn.disabled = true; btn.textContent = 'Planning…';
     planOut.innerHTML = '<div class="loading"><span class="spinner"></span>Claude is building your plan…</div>';
@@ -476,14 +457,108 @@
       const res = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       let data = {}; try { data = await res.json(); } catch { /* non-JSON (e.g. no server) */ }
       state.ai.count++; state.ai.last = Date.now(); state.ai.lastChars = text.length;
+      if (res.status === 401 && data.needLogin) { account.user = null; renderAccount(); goLogin(data.error); planOut.innerHTML = ''; return; }
+      if (typeof data.aiLeft !== 'undefined' && account.user) { account.user.aiLeft = data.aiLeft; renderAccount(); }
+      if (data.needUpgrade) throw Object.assign(new Error(data.error), { upgrade: true });
       if (!res.ok || !Array.isArray(data.blocks)) throw new Error(data.error || (res.status === 404 ? 'The AI server isn\'t running here. Open the live site (or run "vercel dev") to use AI.' : 'The AI planner had a problem. Please try again.'));
       state.lastPlan = { ...data, at: Date.now(), added: [] }; save(); renderPlan();
       toast('✨ Your plan is ready.');
     } catch (err) {
       save();
-      planOut.innerHTML = `<div class="result show info"><b>Couldn't make a plan right now.</b><br>${esc(err.message || 'Check your connection and try again.')}</div>`;
+      planOut.innerHTML = `<div class="result show info"><b>Couldn't make a plan right now.</b><br>${esc(err.message || 'Check your connection and try again.')}${err.upgrade ? '<br><button class="btn btn-aqua" type="button" data-buy style="margin-top:12px">Get Personal · $19</button>' : ''}</div>`;
     } finally { btn.disabled = false; btn.textContent = '✨ Plan my day'; }
   });
+
+
+  /* ---------- ACCOUNT (Neon) + PAYMENTS (Stripe) ---------- */
+  const account = { user: null, loaded: false, mode: 'signup', next: null };
+  const api = async (url, opts = {}) => {
+    const res = await fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opts });
+    let data = {}; try { data = await res.json(); } catch { data = { error: res.status === 404 ? 'The server isn\'t running here. Use the live site.' : 'Unexpected server response.' }; }
+    return { ok: res.ok, status: res.status, data };
+  };
+  const setMode = mode => {
+    account.mode = mode;
+    $$('.seg [data-mode]').forEach(b => { const on = b.dataset.mode === mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+    $('#authTitle').textContent = mode === 'signup' ? 'Create your free account' : 'Welcome back';
+    $('#authBtn').textContent = mode === 'signup' ? 'Create free account' : 'Log in';
+    $('#authPw').setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
+    $('#authPw').placeholder = mode === 'signup' ? 'At least 8 characters' : 'Your password';
+    $('#authMsg').textContent = '';
+  };
+  $$('.seg [data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  const renderAccount = () => {
+    const u = account.user;
+    $('#authBox').hidden = !!u; $('#acctBox').hidden = !u;
+    $$('[data-acct-label]').forEach(a => { a.textContent = (a.closest('#mobile-menu') ? '👤 ' : '') + (u ? 'Account' : 'Log in'); });
+    const st = $('#aiStatus');
+    if (u) {
+      const paid = u.plan === 'personal';
+      $('#acctEmail').textContent = u.email;
+      $('#acctPlan').textContent = paid ? 'Personal ✓' : 'Free';
+      $('#acctAi').textContent = paid ? 'Unlimited' : `${u.aiLeft} of 3 left`;
+      $('#acctUpgrade').hidden = paid; $('#acctPaid').hidden = !paid;
+      st.innerHTML = paid ? `Logged in as <b>${esc(u.email)}</b> · Personal: unlimited AI plans`
+        : `Logged in as <b>${esc(u.email)}</b> · ${u.aiLeft} free AI plan${u.aiLeft === 1 ? '' : 's'} left today · <a href="#/account">Upgrade</a>`;
+    } else {
+      st.innerHTML = account.loaded ? '🔒 <a href="#/account">Log in or create a free account</a> to use the AI Planner (3 free plans a day).' : '';
+    }
+  };
+  const goLogin = (msg, next) => {
+    account.next = next || location.hash || '#/ai';
+    location.hash = '#/account';
+    if (msg) { $('#authMsg').textContent = msg; $('#authMsg').className = 'auth-msg info'; }
+    setTimeout(() => $('#authEmail').focus(), 50);
+  };
+  $('#authForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#authEmail').value.trim(), password = $('#authPw').value, msg = $('#authMsg'), btn = $('#authBtn');
+    msg.className = 'auth-msg';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'Enter a valid email address.'; $('#authEmail').focus(); return; }
+    if (account.mode === 'signup' && password.length < 8) { msg.textContent = 'Use at least 8 characters for your password.'; $('#authPw').focus(); return; }
+    if (!password) { msg.textContent = 'Enter your password.'; $('#authPw').focus(); return; }
+    btn.disabled = true; const label = btn.textContent; btn.textContent = account.mode === 'signup' ? 'Creating…' : 'Logging in…';
+    try {
+      const r = await api(`/api/auth?action=${account.mode}`, { method: 'POST', body: JSON.stringify({ email, password }) });
+      if (!r.ok) { msg.textContent = r.data.error || 'Something went wrong.'; return; }
+      account.user = r.data.user; $('#authPw').value = ''; renderAccount();
+      toast(account.mode === 'signup' ? '🎉 Account created. Welcome!' : `Welcome back, ${account.user.email}`);
+      const next = account.next; account.next = null;
+      if (next === 'buy') startCheckout(); else if (next && next !== '#/account') location.hash = next;
+    } catch { msg.textContent = 'Network error. Check your connection.'; }
+    finally { btn.disabled = false; btn.textContent = label; }
+  });
+  $('#logoutBtn').addEventListener('click', async () => {
+    await api('/api/auth?action=logout', { method: 'POST' }).catch(() => {});
+    account.user = null; setMode('login'); renderAccount(); toast('You\'re logged out. Your tasks are still on this device.');
+  });
+  const startCheckout = async () => {
+    if (!account.user) { setMode('signup'); goLogin('Create a free account (or log in), then you\'ll go straight to checkout.', 'buy'); return; }
+    if (account.user.plan === 'personal') { toast('You already have Personal ✓'); location.hash = '#/account'; return; }
+    toast('Opening secure Stripe checkout…');
+    const r = await api('/api/checkout?action=create', { method: 'POST' }).catch(() => ({ ok: false, data: {} }));
+    if (r.ok && r.data.url) { location.href = r.data.url; return; }
+    if (r.ok && r.data.already) { await loadMe(); return; }
+    toast(r.data.error || 'Couldn\'t open checkout. Try again.');
+  };
+  document.addEventListener('click', e => { const b = e.target.closest('[data-buy]'); if (b) { e.preventDefault(); startCheckout(); } });
+  const loadMe = async () => {
+    const r = await api('/api/auth?action=me').catch(() => ({ ok: false, data: {} }));
+    account.user = r.ok ? r.data.user : null; account.loaded = true; renderAccount();
+  };
+  const handleCheckoutReturn = async () => {
+    const params = new URLSearchParams(location.search);
+    const result = params.get('checkout'); if (!result) return;
+    const sessionId = params.get('session_id');
+    history.replaceState(null, '', location.pathname + location.hash);
+    if (result === 'cancel') { toast('Checkout canceled. You weren\'t charged.'); return; }
+    if (result === 'success' && sessionId) {
+      const r = await api('/api/checkout?action=verify', { method: 'POST', body: JSON.stringify({ sessionId }) }).catch(() => ({ ok: false, data: {} }));
+      if (r.ok && r.data.user) { account.user = r.data.user; renderAccount(); toast('🎉 Payment received. Personal is unlocked!'); const b = $('#acctPaid'); const rc = b.getBoundingClientRect(); confetti(rc.left + rc.width / 2, rc.top || 200); }
+      else toast(r.data.error || 'We couldn\'t confirm the payment yet. Refresh in a moment.');
+    }
+  };
+  loadMe().then(handleCheckoutReturn);
 
   /* ---------- nav ---------- */
   const header = $('.site-header'); const bar = $('.scroll-progress');
