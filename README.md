@@ -1,14 +1,35 @@
 # ClinicGuard Personal
 
-A private daily planner with a built-in security "Guard". Static site, no build step, no API keys.
+A private daily planner with a built-in security "Guard" and an opt-in AI Planner. Static site plus one Vercel serverless function (`api/plan.js`).
 
 ## Run locally
+
+Without AI (everything except the AI Planner):
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit http://localhost:8000.
+With AI (needs the Vercel CLI and an Anthropic API key):
+
+```bash
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local   # never commit this file
+vercel dev
+```
+
+## Deploy the AI Planner
+
+1. Get an API key at console.anthropic.com (add billing credits).
+2. Vercel → this project → Settings → Environment Variables → add `ANTHROPIC_API_KEY` (Production).
+3. Redeploy. The key only lives on the server; the browser never sees it.
+
+## Pages
+
+- **Home** (`/`): one scrolling page: hero, how it works, a live demo of the app, why, privacy, pricing, FAQ.
+- **Plan your day** (`#/app`): the same app (Today, Guard, Devices, My data) as a full page. Your tasks are the same in both places.
+- **AI Planner** (`#/ai`): paste a messy list, Claude turns it into a plan for today.
+
+On phones, a bottom bar switches between Home, Plan and AI.
 
 ## What works (real, not mocked)
 
@@ -18,15 +39,19 @@ Then visit http://localhost:8000.
 - **My data:** shows exactly what is stored and what was sent, JSON export, erase everything.
 - All data is stored in the browser's localStorage only. No accounts, no server.
 
+- **✨ AI Planner:** brain-dump + time + energy → Claude (`claude-haiku-5-5`) returns a day plan with a first step per block; add blocks to Today. First use shows a consent popup listing exactly what is sent; every AI request is logged in My data. Server limits input to 2,000 characters and ~15 requests/hour per IP (best-effort).
+
 ## Honest limits (early version)
 
-- "First step" uses built-in rules, not AI.
+- The ⚡ first step on regular tasks uses built-in offline rules; AI first steps come from the AI Planner.
+- The rate limit is per server instance, not a full abuse system. Set a monthly spend limit in the Anthropic console.
 - Email breach alerts are planned for v2 (an email check can't be fully private, so it will be opt-in).
 - Websites can't inspect a device's real update status, so update dates are entered by the user.
 - Pricing ($19 one-time) is a planned launch price; the early-access button does not collect data yet.
 
 ## Files
 
-- `index.html`, `styles.css`, `app.js`: ClinicGuard Personal (homepage)
+- `index.html`, `styles.css`, `app.js`: ClinicGuard Personal
+- `api/plan.js`: serverless AI Planner endpoint (holds the API key)
 - `msp.html`, `msp-styles.css`, `msp-app.js`: original ClinicGuard clinic/MSP concept site (kept for reference, linked in the footer)
 - `assets/`: images used by the MSP concept page

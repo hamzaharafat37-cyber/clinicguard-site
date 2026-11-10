@@ -8,9 +8,10 @@
   const DAY = 86400000;
 
   /* ---------- storage ---------- */
-  const fresh = () => ({ tasks: [], devices: [], days: {}, pw: { last: null, lastPrefix: null, breached: false, resolved: true }, guardTasksAddedOn: null });
+  const fresh = () => ({ tasks: [], devices: [], days: {}, pw: { last: null, lastPrefix: null, breached: false, resolved: true }, ai: { count: 0, last: null, lastChars: 0, consent: false }, lastPlan: null });
   let state;
   try { state = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { state = fresh(); }
+  state.ai = Object.assign(fresh().ai, state.ai || {});
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage unavailable: app still works for this session */ } };
 
   const uid = () => Math.random().toString(36).slice(2, 10);
@@ -72,7 +73,7 @@
   const tabs = $$('.tab');
   const showTab = name => {
     tabs.forEach(t => { const on = t.dataset.tab === name; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; });
-    $$('.panel').forEach(p => { p.hidden = p.id !== 'panel-' + name; });
+    $$('.panel', $('#appShell')).forEach(p => { p.hidden = p.id !== 'panel-' + name; });
     if (name === 'privacy') renderLedger();
     if (name === 'devices') renderDevices();
     if (name === 'guard') renderGuard();
@@ -85,6 +86,39 @@
     n.focus(); n.click(); e.preventDefault();
   });
   $$('[data-goto]').forEach(a => a.addEventListener('click', () => setTimeout(() => showTab(a.dataset.goto), 50)));
+
+  /* ---------- router: Home is one scrolling page; "Plan your day" (#/app) and "AI Planner" (#/ai) are their own tabs ---------- */
+  const VIEWS = ['home', 'app', 'ai'];
+  const TITLES = { home: 'Plan your day. Guard your life.', app: 'Plan your day', ai: 'AI Planner' };
+  const shell = $('#appShell');
+  let current = null;
+  const route = () => {
+    const h = location.hash;
+    const isRoute = h.startsWith('#/');
+    let name = isRoute ? h.slice(2) : 'home';
+    if (!VIEWS.includes(name)) name = 'home';
+    const changed = name !== current;
+    current = name;
+    if (changed) {
+      $$('.view').forEach(v => { v.hidden = v.dataset.view !== name; });
+      $$('[data-nav]').forEach(a => a.dataset.nav === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+      document.title = `${TITLES[name]} · ClinicGuard Personal`;
+      // the same live app is shown on the homepage and in its own tab: move it, don't copy it
+      const slot = name === 'app' ? $('#appSlotTab') : $('#appSlotHome');
+      if (shell.parentElement !== slot) slot.appendChild(shell);
+      if (name === 'app') shell.classList.remove('pre');
+      if (name === 'ai') renderPlan();
+      if (name === 'home') requestAnimationFrame(() => { size(); onScroll(); });
+      if (isRoute || !h) window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    const menu = $('#mobile-menu'); if (menu) menu.hidden = true;
+    if (!isRoute && h.length > 1) { const t = document.getElementById(h.slice(1)); if (t) requestAnimationFrame(() => t.scrollIntoView({ behavior: changed || reduceMotion ? 'auto' : 'smooth' })); }
+  };
+  addEventListener('hashchange', route);
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-scroll]'); if (!a) return;
+    e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if (t) t.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
 
   /* ---------- TODAY ---------- */
   const list = $('#taskList');
@@ -350,6 +384,7 @@
       ['Streak history', '<span class="tag-local">This browser only</span>', `${Object.keys(state.days).length} day${Object.keys(state.days).length === 1 ? '' : 's'} logged`],
       ['Passwords you check', '<b>Never stored anywhere</b>', 'Cleared from the screen right after checking'],
       ['Sent over the internet', '<span class="tag-out">Have I Been Pwned (5 characters)</span>', state.pw.lastPrefix ? `Last sent: <code>${esc(state.pw.lastPrefix)}</code> on ${new Date(state.pw.last).toLocaleDateString()}` : 'Nothing sent yet'],
+      ['Sent to AI (Claude by Anthropic)', '<span class="tag-out">Only when you press ✨ Plan my day</span>', state.ai.count ? `${state.ai.count} request${state.ai.count > 1 ? 's' : ''} · last: ${state.ai.lastChars} characters on ${new Date(state.ai.last).toLocaleDateString()}` : 'Nothing sent yet'],
       ['Total saved on this device', '<span class="tag-local">localStorage</span>', `${bytes.toLocaleString()} bytes`],
     ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
   };
@@ -367,6 +402,69 @@
 
   $('#waitlistBtn').addEventListener('click', () => toast('Early-access signup opens soon. Until then, the free version is all yours.'));
 
+
+  /* ---------- ✨ AI PLANNER (Plus AI preview) ---------- */
+  const planOut = $('#planOut');
+  const PRIO = { high: 'High', medium: 'Medium', low: 'Low' };
+  const renderPlan = () => {
+    const p = state.lastPlan;
+    if (!p) { planOut.innerHTML = ''; return; }
+    const added = p.added || [];
+    planOut.innerHTML = `
+      <div class="plan-summary"><span style="font-size:26px">✨</span><div><b>${esc(p.summary || 'Your plan for today')}</b><p>Made ${new Date(p.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · ${p.blocks.length} block${p.blocks.length === 1 ? '' : 's'}. Add what you like to Today.</p></div></div>
+      <div class="plan-grid">${p.blocks.map((b, i) => `
+        <div class="plan-block" style="animation-delay:${i * 80}ms">
+          <div class="plan-time">${esc(b.time)}<small>${b.minutes ? esc(b.minutes) + ' min' : ''}</small></div>
+          <div><h5>${esc(b.title)}${b.priority && PRIO[b.priority] ? `<span class="prio ${b.priority}">${PRIO[b.priority]}</span>` : ''}</h5>${b.why ? `<p>${esc(b.why)}</p>` : ''}${b.firstStep ? `<p class="plan-step">⚡ <b>First step:</b> ${esc(b.firstStep)}</p>` : ''}</div>
+          <button class="btn btn-soft" data-add-block="${i}" ${added.includes(i) ? 'disabled' : ''}>${added.includes(i) ? 'Added ✓' : '+ Today'}</button>
+        </div>`).join('')}</div>
+      <div class="plan-actions"><button class="btn btn-dark" id="addAllPlan">Add all to Today</button><button class="btn btn-soft" id="clearPlan">Clear plan</button></div>
+      ${p.tip ? `<p class="plan-tip">💡 ${esc(p.tip)}</p>` : ''}`;
+  };
+  const addBlock = i => {
+    const p = state.lastPlan; const b = p && p.blocks[i]; if (!b) return;
+    p.added = p.added || []; if (p.added.includes(i)) return;
+    addTask(b.title, { step: b.firstStep || firstStep(b.title), ai: true });
+    p.added.push(i); save();
+  };
+  planOut.addEventListener('click', e => {
+    const one = e.target.closest('[data-add-block]');
+    if (one) { addBlock(+one.dataset.addBlock); renderPlan(); toast('Added to Today.'); return; }
+    if (e.target.id === 'addAllPlan') { state.lastPlan.blocks.forEach((_, i) => addBlock(i)); renderPlan(); toast('Your plan is in Today. Tap ⚡ on any task to start.'); location.hash = '#/app'; showTab('today'); }
+    if (e.target.id === 'clearPlan') { state.lastPlan = null; save(); renderPlan(); }
+  });
+
+  const consentEl = $('#aiConsent'); let pendingPlan = null;
+  const askConsent = () => new Promise(resolve => {
+    consentEl.hidden = false; $('#aiAgree').focus();
+    pendingPlan = ok => { consentEl.hidden = true; pendingPlan = null; resolve(ok); };
+  });
+  $('#aiAgree').addEventListener('click', () => { if ($('#aiRemember').checked) { state.ai.consent = true; save(); } pendingPlan && pendingPlan(true); });
+  $('#aiCancel').addEventListener('click', () => pendingPlan && pendingPlan(false));
+  consentEl.addEventListener('click', e => { if (e.target === consentEl && pendingPlan) pendingPlan(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !consentEl.hidden && pendingPlan) pendingPlan(false); });
+
+  $('#planForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = $('#dump').value.trim();
+    if (text.length < 3) { $('#dump').focus(); toast('Type a few things on your mind first.'); return; }
+    if (!state.ai.consent && !(await askConsent())) { toast('No problem. Nothing was sent.'); return; }
+    const btn = $('#planBtn'); btn.disabled = true; btn.textContent = 'Planning…';
+    planOut.innerHTML = '<div class="loading"><span class="spinner"></span>Claude is building your plan…</div>';
+    const payload = { text, hours: $('#hours').value, energy: $('#energy').value, localTime: new Date().toLocaleString([], { weekday: 'long', hour: 'numeric', minute: '2-digit' }) };
+    try {
+      const res = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      let data = {}; try { data = await res.json(); } catch { /* non-JSON (e.g. no server) */ }
+      state.ai.count++; state.ai.last = Date.now(); state.ai.lastChars = text.length;
+      if (!res.ok || !Array.isArray(data.blocks)) throw new Error(data.error || (res.status === 404 ? 'The AI server isn\'t running here. Open the live site (or run "vercel dev") to use AI.' : 'The AI planner had a problem. Please try again.'));
+      state.lastPlan = { ...data, at: Date.now(), added: [] }; save(); renderPlan();
+      toast('✨ Your plan is ready.');
+    } catch (err) {
+      save();
+      planOut.innerHTML = `<div class="result show info"><b>Couldn't make a plan right now.</b><br>${esc(err.message || 'Check your connection and try again.')}</div>`;
+    } finally { btn.disabled = false; btn.textContent = '✨ Plan my day'; }
+  });
+
   /* ---------- nav ---------- */
   const header = $('.site-header'); const bar = $('.scroll-progress');
   const toggle = $('.menu-toggle'); const menu = $('#mobile-menu');
@@ -376,12 +474,12 @@
   /* ---------- scroll interactions ---------- */
   const stage = $('#stage3d'); const cube = $('#cube');
   let mx = 0, my = 0;
-  const onScroll = () => {
+  function onScroll() {
     const y = window.scrollY; const max = document.documentElement.scrollHeight - innerHeight;
     bar.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
     header.classList.toggle('scrolled', y > 10);
-    if (!reduceMotion && y < innerHeight * 1.2) stage.style.transform = `translateY(${y * 0.18}px) rotateY(${mx * 10 - y * 0.012}deg) rotateX(${-my * 8 + y * 0.01}deg)`;
-  };
+    if (!reduceMotion && current === 'home' && y < innerHeight * 1.2) stage.style.transform = `translateY(${y * 0.18}px) rotateY(${mx * 10 - y * 0.012}deg) rotateX(${-my * 8 + y * 0.01}deg)`;
+  }
   addEventListener('scroll', onScroll, { passive: true });
   if (!reduceMotion) $('.hero').addEventListener('mousemove', e => { const r = e.currentTarget.getBoundingClientRect(); mx = (e.clientX - r.left) / r.width - .5; my = (e.clientY - r.top) / r.height - .5; onScroll(); });
 
@@ -396,8 +494,9 @@
   }), { rootMargin: '-45% 0px -45% 0px' });
   $$('.step').forEach(s => stepIO.observe(s));
 
+
   const shellIO = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove('pre'); shellIO.disconnect(); } }), { threshold: .15 });
-  shellIO.observe($('#appShell'));
+  shellIO.observe(shell);
 
   // 3D tilt cards
   if (!reduceMotion && matchMedia('(hover:hover)').matches) {
@@ -416,7 +515,7 @@
   const N = innerWidth < 700 ? 420 : 760; const pts = [];
   for (let i = 0; i < N; i++) { const y = 1 - (i / (N - 1)) * 2; const r = Math.sqrt(1 - y * y); const th = Math.PI * (3 - Math.sqrt(5)) * i; pts.push([Math.cos(th) * r, y, Math.sin(th) * r]); }
   let rot = 0, visible = true, raf;
-  const size = () => { const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  function size() { if (!cv.clientWidth) return; const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
   size(); addEventListener('resize', size);
   const draw = () => {
     const w = cv.clientWidth, hgt = cv.clientHeight; ctx.clearRect(0, 0, w, hgt);
@@ -436,5 +535,5 @@
   }
 
   /* ---------- go ---------- */
-  renderToday(); renderGuard(); onScroll();
+  renderToday(); renderGuard(); route(); onScroll();
 })();

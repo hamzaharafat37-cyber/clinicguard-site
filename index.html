@@ -16,37 +16,39 @@
 
   <header class="site-header">
     <nav class="nav-wrap container" aria-label="Primary">
-      <a href="#top" class="brand" aria-label="ClinicGuard Personal home">
+      <a href="#/home" class="brand" aria-label="ClinicGuard Personal home">
         <svg viewBox="0 0 32 36" fill="none" aria-hidden="true"><path d="M16 2 29 7v10.6c0 7.5-5.1 12.9-13 16.4C8.1 30.5 3 25.1 3 17.6V7L16 2Z" fill="url(#bg1)" stroke="#6672B2" stroke-width="1.5"/><path d="m10 17.5 4.2 4.2L22.5 13" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="bg1" x1="3" y1="3" x2="29" y2="33"><stop stop-color="#6AD7E2"/><stop offset="1" stop-color="#7268BB"/></linearGradient></defs></svg>
         <span>Clinic<span class="brand-accent">Guard</span></span><span class="brand-tag">PERSONAL</span>
       </a>
       <div class="desktop-nav">
-        <a href="#how">How it works</a><a href="#app">Try it</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+        <a href="#how">How it works</a><a href="#app">Demo</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
       </div>
-      <a href="#app" class="btn btn-dark nav-cta">Open my day ↗</a>
-      <button class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
+      <div class="tabs-nav"><a href="#/home" data-nav="home">Home</a><a href="#/app" data-nav="app">☀️ Plan your day</a><a href="#/ai" data-nav="ai">✨ AI Planner</a></div>
+            <button class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
     </nav>
     <div class="mobile-menu" id="mobile-menu" hidden>
-      <a href="#how">How it works</a><a href="#app">Try it</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
-      <a href="#app" class="btn btn-dark">Open my day ↗</a>
+      <a href="#/home" data-nav="home">🏠 Home</a><a href="#/app" data-nav="app">☀️ Plan your day</a><a href="#/ai" data-nav="ai">✨ AI Planner</a>
+      <hr style="border:0;border-top:1px solid #e8ebf4;width:100%;margin:4px 0">
+      <a href="#how">How it works</a><a href="#app">Demo</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
     </div>
   </header>
 
   <main id="top">
+  <div class="view" data-view="home">
     <!-- HERO -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container hero-inner">
         <div class="hero-copy">
           <div class="eyebrow reveal"><span class="kicker">✦ Private daily planner + security guard</span><span class="eyebrow-line"></span></div>
           <h1 id="hero-title" class="reveal d1">Plan your day.<br><span class="gradient-text">Guard your life.</span><br>Keep it all yours.</h1>
-          <p class="hero-lead reveal d2">ClinicGuard Personal turns your to-do list into tiny first steps you can actually start, and quietly checks whether your passwords or devices put you at risk. No account. No cloud. Your data never leaves your device.</p>
+          <p class="hero-lead reveal d2">ClinicGuard Personal turns your to-do list into tiny first steps you can actually start, and quietly checks whether your passwords or devices put you at risk. No account. Your data stays on your device, and AI only runs when you ask it to.</p>
           <div class="hero-actions reveal d3">
             <a href="#app" class="btn btn-dark btn-lg">Start my day free ↗</a>
             <a href="#app" class="btn btn-outline btn-lg" data-goto="guard">Run a private breach check</a>
           </div>
           <div class="hero-proof reveal d3">
             <span class="chip"><i>✓</i> No sign-up</span>
-            <span class="chip"><i>✓</i> Stored only on this device</span>
+            <span class="chip"><i>✓</i> Stored on this device</span>
             <span class="chip"><i>✓</i> Pay once, not monthly</span>
           </div>
         </div>
@@ -114,10 +116,11 @@
         <div class="section-head reveal">
           <span class="kicker">Live · try it now</span>
           <h2 id="app-title">This is the real app. <span class="gradient-text">Go ahead, use it.</span></h2>
-          <p>Everything below saves to this browser only. Close the tab and come back: your day will still be here.</p>
+          <p>Everything below saves to this browser only. Close the tab and come back: your day will still be here. Prefer a full page? <a href="#/app" style="color:#1da9bd;font-weight:800">Open Plan your day →</a></p>
         </div>
 
-        <div class="app-shell pre" id="appShell">
+        <div id="appSlotHome">
+<div class="app-shell pre" id="appShell">
           <aside class="app-side" role="tablist" aria-label="App sections">
             <div class="who" id="greeting">Good day</div>
             <div class="date" id="todayDate"></div>
@@ -227,6 +230,7 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </section>
 
@@ -283,8 +287,8 @@
       <div class="container">
         <div class="section-head reveal"><span class="kicker">FAQ</span><h2 id="faq-title">Good questions</h2></div>
         <div class="faq reveal">
-          <details><summary>Where is my data stored?</summary><p>In your browser's local storage on this device. There's no ClinicGuard account or server database. The only thing that ever leaves your device is the 5-character piece of a scrambled password, and only when you press "Check privately."</p></details>
-          <details><summary>Is the first-step feature AI?</summary><p>Not yet. Today it's a built-in set of rules that works offline, so nothing about your tasks is sent anywhere. An optional AI version is on the roadmap, and it will always be your choice to turn it on.</p></details>
+          <details><summary>Where is my data stored?</summary><p>In your browser's local storage on this device. There's no ClinicGuard account or server database. Only two things ever leave your device, and only when you press the button: the 5-character piece of a scrambled password ("Check privately"), and the text you type into the AI Planner ("✨ Plan my day"). Both are listed in My data.</p></details>
+          <details><summary>Where does AI come in?</summary><p>The ✨ AI Planner uses Claude, an AI model from Anthropic, to turn your brain-dump into a plan with first steps. It only runs when you press the button, and the first time you'll see exactly what gets sent. The ⚡ first-step button on regular tasks still works offline using built-in rules.</p></details>
           <details><summary>How does the device update check work?</summary><p>Phones and browsers don't let websites look inside your device, which is good for your privacy. So you tell ClinicGuard when each device was last updated, and it reminds you when it's overdue. We can also detect what device you're on right now to save you typing.</p></details>
           <details><summary>What happens if I clear my browser data?</summary><p>Your planner is erased too, because it only lives here. Use "Export my data" in the My data tab to keep a backup file.</p></details>
           <details><summary>Who's building this?</summary><p>ClinicGuard is a student startup from Penn State, built by a cybersecurity student. This is an early version, and we'd love your feedback.</p></details>
@@ -301,7 +305,48 @@
         <a href="#app" class="btn btn-dark btn-lg">Open my day ↗</a>
       </section>
     </div>
-  </main>
+    </div>
+
+  <!-- TAB: Plan your day (same live app as the homepage demo) -->
+  <section class="view app-view" data-view="app" hidden>
+    <div class="container page">
+      <div class="tab-head"><span class="kicker">Plan your day</span><h2>Your day, your data.</h2><p>Same app as the homepage demo, full page. Want AI to sort a messy list for you? <a href="#/ai">Try the ✨ AI Planner →</a></p></div>
+      <div id="appSlotTab"></div>
+    </div>
+  </section>
+
+  <!-- TAB: AI Planner -->
+  <section class="view app-view" data-view="ai" hidden>
+    <div class="container page">
+      <div class="page-card">
+<div class="panel" id="panel-plan">
+              <div class="panel-head"><div><span class="kicker">✨ AI Planner · Plus AI preview</span><h3>Tell me everything. I'll plan your day.</h3><p>Brain-dump whatever's on your mind, messy is fine. AI turns it into a realistic plan with a first step for each block.</p></div></div>
+              <form id="planForm" autocomplete="off">
+                <label for="dump" class="sr-only">Everything on your mind</label>
+                <textarea class="input textarea" id="dump" maxlength="2000" placeholder="e.g. history essay due friday, networking quiz tomorrow, apply to 2 internships, gym, call mom, pay phone bill, I'm tired after 6pm"></textarea>
+                <div class="plan-controls">
+                  <label>Time I have today
+                    <select class="select" id="hours"><option value="1-2 hours">1–2 hours</option><option value="3-4 hours" selected>3–4 hours</option><option value="5-6 hours">5–6 hours</option><option value="a full day">A full day</option></select>
+                  </label>
+                  <label>Energy
+                    <select class="select" id="energy"><option value="low">😴 Low</option><option value="normal" selected>🙂 Normal</option><option value="high">⚡ High</option></select>
+                  </label>
+                  <button class="btn btn-aqua btn-lg" type="submit" id="planBtn">✨ Plan my day</button>
+                </div>
+                <p class="ai-note">🔒 Only the text in this box (plus your time and energy choice) is sent to Claude, an AI by Anthropic, to build your plan. Your saved tasks, devices and passwords are never sent. ClinicGuard doesn't store it.</p>
+              </form>
+              <div id="planOut" aria-live="polite"></div>
+            </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+  <nav class="bottom-bar" aria-label="Sections">
+    <a href="#/home" data-nav="home"><span>🏠</span>Home</a>
+    <a href="#/app" data-nav="app"><span>☀️</span>Plan</a>
+    <a href="#/ai" data-nav="ai"><span>✨</span>AI</a>
+  </nav>
 
   <footer class="footer">
     <div class="container">
@@ -319,6 +364,25 @@
       <div class="focus-actions">
         <button class="btn btn-dark" id="focusDone">I started ✓</button>
         <button class="btn btn-soft" id="focusClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="aiConsent" hidden role="dialog" aria-modal="true" aria-labelledby="aiConsentTitle">
+    <div class="modal">
+      <span class="kicker">Before we use AI</span>
+      <h3 id="aiConsentTitle">Here's exactly what gets sent</h3>
+      <ul class="checklist" style="margin:14px 0 18px">
+        <li class="ok"><i>✓</i>Only the text you typed in the planner box</li>
+        <li class="ok"><i>✓</i>Your time and energy choice, and the current time</li>
+        <li class="bad"><i>✕</i>Never your saved tasks, devices or passwords</li>
+        <li class="bad"><i>✕</i>Not stored by ClinicGuard after your plan is made</li>
+      </ul>
+      <p class="ai-note" style="margin:0 0 18px">It's processed by Claude, an AI model from Anthropic, under Anthropic's API terms. Every AI request is listed in your My data tab.</p>
+      <label class="remember"><input type="checkbox" id="aiRemember" checked> Don't ask me again on this device</label>
+      <div class="focus-actions" style="margin-top:18px">
+        <button class="btn btn-aqua" id="aiAgree">Got it, plan my day</button>
+        <button class="btn btn-soft" id="aiCancel">Cancel</button>
       </div>
     </div>
   </div>
