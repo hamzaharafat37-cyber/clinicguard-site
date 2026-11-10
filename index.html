@@ -11,6 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Comeback" />
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -51,7 +55,7 @@
             <button type="button" class="chip" data-fill="Reply to my landlord's email">Reply to that email</button>
             <button type="button" class="chip" data-fill="Clean my room">Clean my room</button>
           </div>
-          <p class="trust">✓ Free&nbsp;&nbsp;✓ No sign-up to try&nbsp;&nbsp;✓ Works in your browser</p>
+          <p class="trust">✓ Free&nbsp;&nbsp;✓ No sign-up to try&nbsp;&nbsp;✓ Nothing moves without your OK</p>
         </div>
         <div class="hero-demo" aria-hidden="true">
           <div class="demo-card">
@@ -70,7 +74,7 @@
       <div class="container">
         <div class="section-head"><span class="kicker">How it works</span><h2 id="how-title">Three steps. That's the whole app.</h2></div>
         <div class="steps3">
-          <div class="s3"><b>1</b><h3>Name the thing</h3><p>Type what you're avoiding, in your own words. You get one tiny first step you can do in under 2 minutes, plus the next few.</p></div>
+          <div class="s3"><b>1</b><h3>Name the thing</h3><p>Type what you're avoiding, in your own words. Add a time if it has one ("at 3pm", "by Friday"). You get one tiny first step you can do in under 2 minutes.</p></div>
           <div class="s3"><b>2</b><h3>Do one step at a time</h3><p>Start a 5, 10 or 25 minute session. Only the current step is on screen. Stuck? One tap makes it smaller.</p></div>
           <div class="s3"><b>3</b><h3>Drift? Come back.</h3><p>Got distracted or left the tab? Comeback brings you back to the exact step you were on, with a fresh short timer. No lecture.</p></div>
         </div>
@@ -81,8 +85,8 @@
       <div class="container narrow">
         <div class="section-head"><span class="kicker">Why not just ask a chatbot?</span><h2 id="why-title">A list doesn't get you started.</h2></div>
         <div class="compare">
-          <div class="cmp-col"><h3>Asking a chatbot</h3><ul><li>Gives you a list, then you're on your own</li><li>Forgets where you stopped</li><li>Plans your whole day</li><li>Nothing happens when you drift</li></ul></div>
-          <div class="cmp-col us"><h3>Comeback</h3><ul><li>Stays with you, one step on screen</li><li>Remembers the exact step you were on</li><li>Gets you through the next 10 minutes</li><li>"I got distracted" restarts you in one tap</li></ul></div>
+          <div class="cmp-col"><h3>Asking a chatbot</h3><ul><li>Gives you a list, then you're on your own</li><li>Forgets where you stopped</li><li>Plans your whole day</li><li>Nothing happens when you drift</li><li>Planners silently shove missed things to tomorrow</li></ul></div>
+          <div class="cmp-col us"><h3>Comeback</h3><ul><li>Stays with you, one step on screen</li><li>Remembers the exact step you were on</li><li>Gets you through the next 10 minutes</li><li>"I got distracted" restarts you in one tap</li><li>Missed a meeting? You decide: it happened, reschedule, or drop it</li></ul></div>
         </div>
         <p class="soon"><span class="pill">In development</span> A browser extension that notices when you open YouTube or Instagram during a session and offers to take you back to your step. You choose, and you can turn it off any time.</p>
       </div>
@@ -113,6 +117,7 @@
         <div class="faq">
           <details><summary>Does Comeback block apps or watch my phone?</summary><p>No. Comeback is a website. It can't see, block or monitor other apps or sites. During a session it only notices when you leave its own tab, so it can help you get back. A browser extension is in development; it will only act on sites you choose, and you can turn it off any time.</p></details>
           <details><summary>What's stored, and where?</summary><p><b>On your device:</b> your tasks, steps and session history. <b>On our servers (only with an account):</b> your email, a hashed password, your plan, today's AI count, and anonymous usage counts like "a session started" (never what you typed). <b>Sent to Anthropic (Claude):</b> only the task or step text you send when you tap an AI button. See the <a href="privacy.html">privacy page</a>.</p></details>
+          <details><summary>What happens when I miss something?</summary><p>Nothing moves on its own. Missed items wait in a "Missed" list and you choose: it happened, do 5 minutes now, move it, or drop it. Missed a meeting with someone? Comeback gives you a ready first step to reschedule with them. Every change has an Undo.</p></details>
           <details><summary>Do I need an account?</summary><p>No. Quick first steps, sessions and recovery work without one. A free account adds AI breakdowns written for your exact task.</p></details>
           <details><summary>What happened to ClinicGuard?</summary><p>Comeback is the new name for ClinicGuard Personal. We focused on the one thing people told us they needed: actually starting. The old planner and security tools are kept in <a href="legacy/">Labs</a>.</p></details>
           <details><summary>Who's building this?</summary><p>A Penn State student startup. It's early, and we'd love your feedback.</p></details>
@@ -129,8 +134,38 @@
   </div>
 
   <!-- ===================== APP: NOW ===================== -->
-  <section class="view app" data-view="now" hidden aria-labelledby="ask-title">
+  <section class="view app" data-view="now" hidden aria-labelledby="nowTitle">
     <div class="container app-wrap">
+      <div class="now-head">
+        <span class="kicker" id="nowDate"></span>
+        <h1 id="nowTitle">What are you avoiding?</h1>
+      </div>
+
+      <form id="askForm" class="composer" autocomplete="off">
+        <label for="askInput" class="sr-only">What are you avoiding? You can add a time, like "at 3pm".</label>
+        <input class="input" id="askInput" maxlength="300" placeholder="What are you avoiding?" enterkeyhint="go" />
+        <button class="btn btn-dark composer-btn" type="submit" id="askBtn" aria-label="Add and break it down"><span class="cb-label">Break it down</span><span class="cb-plus" aria-hidden="true">＋</span></button>
+      </form>
+
+      <div class="first-run" id="firstRun">
+        <div class="chips">
+          <button type="button" class="chip" data-ask="Start my history essay">✍️ Essay</button>
+          <button type="button" class="chip" data-ask="Study for my calculus exam">📚 Exam</button>
+          <button type="button" class="chip" data-ask="Finish my programming assignment">💻 Assignment</button>
+          <button type="button" class="chip" data-ask="Meeting with my advisor tomorrow at 2pm">📅 Meeting</button>
+          <button type="button" class="chip" data-ask="Clean my room">🧺 Room</button>
+        </div>
+      </div>
+      <p class="ask-note" id="askNote"></p>
+
+      <button type="button" class="upnext" id="upNext" hidden></button>
+
+      <div class="card missed" id="missedCard" hidden>
+        <h2>Missed <span class="count" id="missedCount"></span></h2>
+        <p class="muted small">Nothing was moved for you. Pick what happens next.</p>
+        <ul id="missedList"></ul>
+      </div>
+
       <div class="card resume" id="resume" hidden>
         <span class="kicker">Pick up where you left off</span>
         <h2 id="resumeTitle"></h2>
@@ -138,28 +173,15 @@
         <div class="row"><button class="btn btn-dark" id="resumeBtn">Resume · 10 min</button><button class="btn btn-ghost" id="resumeLater">Not now</button></div>
       </div>
 
-      <div class="card ask" id="askCard">
-        <h1 id="ask-title">What are you avoiding?</h1>
-        <form id="askForm" class="ask-form" autocomplete="off">
-          <label for="askInput" class="sr-only">What are you avoiding?</label>
-          <input class="input" id="askInput" maxlength="300" placeholder="e.g. study for my calculus exam" />
-          <button class="btn btn-dark" type="submit" id="askBtn">Break it down</button>
-        </form>
-        <div class="chips">
-          <button type="button" class="chip" data-ask="Start my history essay">Essay</button>
-          <button type="button" class="chip" data-ask="Study for my calculus exam">Exam</button>
-          <button type="button" class="chip" data-ask="Finish my programming assignment">Assignment</button>
-          <button type="button" class="chip" data-ask="Reply to my landlord's email">Email</button>
-          <button type="button" class="chip" data-ask="Clean my room">Room</button>
-        </div>
-        <p class="ask-note" id="askNote"></p>
-      </div>
-
       <div class="card plan" id="planCard" hidden aria-live="polite">
         <div class="plan-head">
           <label for="planTitle" class="sr-only">Task</label>
           <input class="plan-title" id="planTitle" maxlength="80" />
           <span class="badge" id="planBadge"></span>
+        </div>
+        <div class="when-row">
+          <label class="when"><span aria-hidden="true">⏰</span><span class="sr-only">Time</span><input type="datetime-local" id="planWhen"></label>
+          <button type="button" class="link-btn" id="clearWhen">No time</button>
         </div>
         <p class="plan-tip" id="planTip"></p>
         <ol class="steps" id="planSteps"></ol>
@@ -172,12 +194,15 @@
           </div>
           <button class="btn btn-dark btn-lg" id="startBtn">Start step 1 →</button>
         </div>
-        <button type="button" class="link-btn" id="smallerBtn">Step 1 still feels too big? Make it smaller</button>
+        <div class="plan-foot">
+          <button type="button" class="link-btn" id="smallerBtn">Make step 1 smaller</button>
+          <button type="button" class="link-btn quiet" id="dropBtn">Drop this task</button>
+        </div>
       </div>
 
       <div class="card list" id="listCard" hidden>
-        <h2>Still on your list</h2>
-        <ul id="taskList"></ul>
+        <h2>Your list <span class="hint" id="listHint">Drag ⋮⋮ to reorder</span></h2>
+        <ul id="taskList" class="tasks"></ul>
       </div>
 
       <div class="stats" id="stats" hidden></div>
@@ -264,6 +289,7 @@
         <button class="btn btn-ghost" id="fDistracted">I got distracted</button>
       </div>
       <div class="dots" id="fDots" aria-hidden="true"></div>
+      <p class="kbd-hint" aria-hidden="true"><kbd>Enter</kbd> done · <kbd>Space</kbd> pause · <kbd>S</kbd> stuck · <kbd>D</kbd> distracted · <kbd>Esc</kbd> stop</p>
     </div>
     <div class="focus-panel" id="fRecover" hidden>
       <h2>Welcome back 👋</h2>
@@ -294,7 +320,9 @@
     </div>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="toastAction" hidden></button><i class="toast-bar" id="toastBar"></i></div>
+  <div class="burst" id="burst" aria-hidden="true"></div>
+  <script src="when.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

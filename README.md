@@ -11,6 +11,13 @@ Live: https://clinicguard-site.vercel.app
 - **Now** (`#/now`): "What are you avoiding?" → editable steps (✨ AI with an account, quick rule-based steps without) → Start (5/10/25 min).
 - **Focus mode**: one step on screen, timer, **I'm stuck** (makes the step smaller), **I got distracted** (pause + restart with 5 min), auto "welcome back" if you leave the tab for 45+ seconds or reload mid-session.
 - **Still on your list / Resume**: unfinished tasks pick up at the exact step.
+- **Times without the fuss**: type "meeting with Sarah 3pm" or "lab report by Friday". Parsed on the device (`when.js`), no AI.
+- **Missed list, nothing moves on its own**: when a time passes, the item waits in "Missed". Events: It happened / Reschedule with them (creates a ready-to-send first step) / Drop. Tasks: Do 5 min now / Tomorrow / No deadline / Drop.
+- **Undo everywhere**: every move, drop, check-off and step change shows an Undo button for 6 seconds.
+- **Reorder**: drag the ⋮⋮ handle (mouse or finger) or use arrow keys on it.
+- **One finger on phones**: the add box sits at the bottom near your thumb, every tap target is at least 48px, short vibrations on Android.
+- **Mouse and keyboard**: hover states, drag to reorder, `N` or `/` to add, and in focus mode `Enter` done, `Space` pause, `S` stuck, `D` distracted, `Esc` stop.
+- **Works offline and installs like an app**: service worker (`sw.js`, network first, never caches `/api`) and `manifest.webmanifest`. On iPhone: Share → Add to Home Screen.
 - **Progress**: started this week, finished, median time to start, comebacks.
 - **Account** (`#/account`): sign up / log in (Neon), Stripe upgrade, your-data table, export, erase device data, delete account.
 - **Labs** (`/legacy/`): the old planner + Guard (breach check, devices), kept for reference.
