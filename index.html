@@ -21,7 +21,7 @@
         <span>Clinic<span class="brand-accent">Guard</span></span><span class="brand-tag">PERSONAL</span>
       </a>
       <div class="desktop-nav">
-        <a href="#how">How it works</a><a href="#app">Try it live</a><a href="#privacy">Privacy</a><a href="#vault">Vault.io</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+        <a href="#how">How it works</a><a href="#app">Try it live</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
       </div>
       <div class="tabs-nav"><a href="#/home" data-nav="home">Home</a><a href="#/app" data-nav="app">☀️ Plan your day</a><a href="#/ai" data-nav="ai">✨ AI Planner</a></div>
             <button class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
@@ -29,7 +29,7 @@
     <div class="mobile-menu" id="mobile-menu" hidden>
       <a href="#/home" data-nav="home">🏠 Home</a><a href="#/app" data-nav="app">☀️ Plan your day</a><a href="#/ai" data-nav="ai">✨ AI Planner</a>
       <hr style="border:0;border-top:1px solid #e8ebf4;width:100%;margin:4px 0">
-      <a href="#how">How it works</a><a href="#app">Try it live</a><a href="#privacy">Privacy</a><a href="#vault">Vault.io</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      <a href="#how">How it works</a><a href="#app">Try it live</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
     </div>
   </header>
 
@@ -267,24 +267,6 @@
       </div>
     </section>
 
-    <!-- VAULT.IO (coming next) -->
-    <section class="section" id="vault" aria-labelledby="vault-title">
-      <div class="container">
-        <div class="vault reveal">
-          <div class="vault-copy">
-            <span class="soon-pill">In development · coming next</span>
-            <h2 id="vault-title">Vault.io <span class="vault-grad">fills the forms for you.</span></h2>
-            <p>Job applications ask for the same things again and again. Vault.io keeps your info (resume, contact details, work history) in an encrypted vault on your device. When you open an application, its AI agent fills it in for you. You check every field and press submit yourself.</p>
-            <a href="#early" class="btn btn-aqua" data-vault-interest>Get Vault.io early access ↗</a>
-          </div>
-          <div class="vault-steps">
-            <div class="v-step"><div class="v-ic">🔐</div><div><b>Encrypted on your device</b><span>Your info is locked with a key only you have. No server copy.</span></div></div>
-            <div class="v-step"><div class="v-ic">✨</div><div><b>AI fills the form</b><span>The agent reads the form and fills each field from your vault.</span></div></div>
-            <div class="v-step"><div class="v-ic">✅</div><div><b>You approve, always</b><span>Nothing gets submitted until you review it and say yes.</span></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- PRICING -->
     <section class="section" id="pricing" aria-labelledby="pricing-title">
@@ -296,7 +278,7 @@
         </div>
         <div class="price-wrap">
           <div class="price reveal"><h3>Free</h3><div class="amt">$0</div><p class="note">Forever, on one device</p><ul><li>Daily planner + first steps</li><li>2-minute focus timer</li><li>Private password breach checks</li><li>Up to 3 devices</li></ul><a href="#app" class="btn btn-outline" style="width:100%">Start free</a></div>
-          <div class="price hl reveal d1"><h3>Personal</h3><div class="amt">$19 <small>once</small></div><p class="note">Planned launch price · no subscription</p><ul><li>Everything in Free</li><li>Unlimited devices</li><li>Encrypted backup file you control</li><li>Email breach alerts (v2, opt-in)</li><li>Vault.io early access</li><li>All future updates to v1</li></ul><a href="#early" class="btn btn-aqua" style="width:100%">Join the early-access list</a></div>
+          <div class="price hl reveal d1"><h3>Personal</h3><div class="amt">$19 <small>once</small></div><p class="note">Planned launch price · no subscription</p><ul><li>Everything in Free</li><li>Unlimited devices</li><li>Encrypted backup file you control</li><li>Email breach alerts (v2, opt-in)</li><li>All future updates to v1</li></ul><a href="#early" class="btn btn-aqua" style="width:100%">Join the early-access list</a></div>
         </div>
       </div>
     </section>
@@ -307,7 +289,7 @@
         <form class="early reveal" id="earlyForm" action="https://formspree.io/f/REPLACE_ME" method="POST" novalidate>
           <span class="kicker">Early access</span>
           <h2 id="early-title">Be first in line.</h2>
-          <p>Get the $19 launch price and first access to Vault.io. One email when it's ready. No spam.</p>
+          <p>Lock in the $19 launch price and get new features first. One email when it's ready. No spam.</p>
           <div class="early-row">
             <input class="input" type="email" name="email" id="earlyEmail" placeholder="you@school.edu" autocomplete="email" required aria-label="Email address">
             <button class="btn btn-dark" type="submit" id="earlyBtn">Join the list</button>
@@ -315,7 +297,6 @@
           <div class="early-checks">
             <span>I'm interested in:</span>
             <label><input type="checkbox" name="personal" value="yes" checked> ClinicGuard Personal</label>
-            <label><input type="checkbox" name="vault" value="yes" id="earlyVault"> Vault.io</label>
             <label><input type="checkbox" name="ai_planner" value="yes"> AI Planner</label>
           </div>
           <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
@@ -333,7 +314,6 @@
           <details><summary>Where does AI come in?</summary><p>The ✨ AI Planner uses Claude, an AI model from Anthropic, to turn your brain-dump into a plan with first steps. It only runs when you press the button, and the first time you'll see exactly what gets sent. The ⚡ first-step button on regular tasks still works offline using built-in rules.</p></details>
           <details><summary>How does the device update check work?</summary><p>Phones and browsers don't let websites look inside your device, which is good for your privacy. So you tell ClinicGuard when each device was last updated, and it reminds you when it's overdue. We can also detect what device you're on right now to save you typing.</p></details>
           <details><summary>What happens if I clear my browser data?</summary><p>Your planner is erased too, because it only lives here. Use "Export my data" in the My data tab to keep a backup file.</p></details>
-          <details><summary>What is Vault.io?</summary><p>Vault.io is the next feature we're building: an encrypted vault for your personal info plus an AI agent that fills job applications and forms for you. It never submits anything without your approval. It's in development now. Join the early-access list to try it first.</p></details>
           <details><summary>Who's building this?</summary><p>ClinicGuard is a student startup from Penn State, built by a cybersecurity student. This is an early version, and we'd love your feedback.</p></details>
         </div>
       </div>

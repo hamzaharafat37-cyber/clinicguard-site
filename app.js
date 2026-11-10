@@ -402,7 +402,6 @@
 
   /* ---------- early-access signup (Formspree) ---------- */
   const earlyForm = $('#earlyForm');
-  $$('[data-vault-interest]').forEach(a => a.addEventListener('click', () => { $('#earlyVault').checked = true; }));
   earlyForm.addEventListener('submit', async e => {
     e.preventDefault();
     const email = $('#earlyEmail').value.trim(), msg = $('#earlyMsg'), btn = $('#earlyBtn');
