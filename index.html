@@ -4,84 +4,325 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f8faff" />
-  <meta name="description" content="ClinicGuard turns medical device inventory and security advisories into clear, actionable guidance for healthcare MSPs. Explore free consumer safety tools." />
-  <title>ClinicGuard — Security behind better care</title>
+  <meta name="description" content="ClinicGuard Personal: a private daily planner that breaks tasks into first steps and quietly guards your accounts and devices. Your data stays on your device." />
+  <title>ClinicGuard Personal — Plan your day. Guard your life.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="ambient ambient-top" aria-hidden="true"></div>
-  <div class="ambient ambient-mid" aria-hidden="true"></div>
-  <header class="site-header" id="top">
-    <nav class="nav-wrap container" aria-label="Primary navigation">
-      <a href="#top" class="brand" aria-label="ClinicGuard home"><span class="brand-emblem"><svg viewBox="0 0 32 36" fill="none" aria-hidden="true"><path d="M16 2 29 7v10.6c0 7.5-5.1 12.9-13 16.4C8.1 30.5 3 25.1 3 17.6V7L16 2Z" fill="url(#brandG)" stroke="#6672B2" stroke-width="1.5"/><path d="M16 8v17M7.5 16.5h17" stroke="white" stroke-width="3.6" stroke-linecap="round"/><defs><linearGradient id="brandG" x1="3" y1="3" x2="29" y2="33"><stop stop-color="#6AD7E2"/><stop offset="1" stop-color="#7268BB"/></linearGradient></defs></svg></span><span>Clinic<span class="brand-accent">Guard</span></span></a>
-      <div class="desktop-nav"><a href="#how">How it works</a><a href="#platform">Platform</a><a href="#tools">Free tools</a><a href="#why">Our approach</a></div>
-      <div class="nav-actions"><a href="#platform" class="nav-login">Explore dashboard <span aria-hidden="true">↗</span></a><button class="btn btn-dark btn-nav" data-open-demo>Book a demo <span aria-hidden="true">↗</span></button></div>
-      <button class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <nav class="nav-wrap container" aria-label="Primary">
+      <a href="#top" class="brand" aria-label="ClinicGuard Personal home">
+        <svg viewBox="0 0 32 36" fill="none" aria-hidden="true"><path d="M16 2 29 7v10.6c0 7.5-5.1 12.9-13 16.4C8.1 30.5 3 25.1 3 17.6V7L16 2Z" fill="url(#bg1)" stroke="#6672B2" stroke-width="1.5"/><path d="m10 17.5 4.2 4.2L22.5 13" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="bg1" x1="3" y1="3" x2="29" y2="33"><stop stop-color="#6AD7E2"/><stop offset="1" stop-color="#7268BB"/></linearGradient></defs></svg>
+        <span>Clinic<span class="brand-accent">Guard</span></span><span class="brand-tag">PERSONAL</span>
+      </a>
+      <div class="desktop-nav">
+        <a href="#how">How it works</a><a href="#app">Try it</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      </div>
+      <a href="#app" class="btn btn-dark nav-cta">Open my day ↗</a>
+      <button class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>
     </nav>
-    <div class="mobile-menu" id="mobile-menu" hidden><a href="#how">How it works</a><a href="#platform">Platform</a><a href="#tools">Free tools</a><a href="#why">Our approach</a><button class="btn btn-dark" data-open-demo>Book a demo ↗</button></div>
+    <div class="mobile-menu" id="mobile-menu" hidden>
+      <a href="#how">How it works</a><a href="#app">Try it</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      <a href="#app" class="btn btn-dark">Open my day ↗</a>
+    </div>
   </header>
 
-  <main>
+  <main id="top">
+    <!-- HERO -->
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-glow" aria-hidden="true"></div>
       <div class="container hero-inner">
-        <div class="hero-copy reveal">
-          <div class="eyebrow"><span class="tiny-star">✦</span> PROTECTING THE TECHNOLOGY BEHIND CARE <span class="eyebrow-line"></span></div>
-          <h1 id="hero-title">More confidence.<br><span class="headline-gradient">Less complexity.</span><br>Better care.</h1>
-          <p class="hero-lead">Healthcare cybersecurity doesn't have to feel complicated. Identify clinical technology, understand the risks, and know exactly what to do next.</p>
-          <div class="hero-actions"><button class="btn btn-dark btn-xl" data-open-demo>See ClinicGuard in action <span aria-hidden="true">↗</span></button><a class="btn btn-outline btn-xl" href="#tools">Explore free tools <span aria-hidden="true">↗</span></a></div>
-          <div class="hero-proof"><span><i class="check-icon">✓</i> Made for healthcare</span><span><i class="check-icon">✓</i> Actionable, not overwhelming</span><span><i class="check-icon">✓</i> No patient data needed</span></div>
-        </div>
-        <div class="hero-visual reveal" aria-label="A peaceful family moment representing the people healthcare protects">
-          <div class="hero-photo" role="img" aria-label="Mother embracing her child in a calming healthcare setting"></div>
-          <div class="floating-shield" aria-hidden="true"><svg viewBox="0 0 90 104" fill="none"><path d="M45 4 83 20v31c0 25-16 39-38 49C23 90 7 76 7 51V20L45 4Z" stroke="white" stroke-width="4" fill="rgba(94,204,222,.12)"/><path d="M45 28v40M25 48h40" stroke="white" stroke-width="8" stroke-linecap="round"/></svg></div>
-          <div class="hero-note"><span class="hero-note-icon">✧</span><div><strong>Care starts with confidence</strong><small>Clearer security. Safer decisions.</small></div></div>
-        </div>
-      </div>
-      <div class="wave wave-one" aria-hidden="true"></div><div class="wave wave-two" aria-hidden="true"></div>
-    </section>
-
-    <section class="trust-strip container reveal" aria-label="Our approach"><div><span class="trust-symbol">✳</span> Designed for specialized clinical technology</div><div><span class="trust-symbol">◎</span> Based on documented advisories</div><div><span class="trust-symbol">◇</span> Clarity before complexity</div></section>
-
-    <section class="section how-section container" id="how">
-      <div class="section-header centered reveal"><div class="kicker">A SMARTER WAY FORWARD</div><h2>From unknown risk to <span class="gradient-text">clear next steps.</span></h2><p>One straightforward workflow that makes healthcare cybersecurity easier to understand and act on.</p></div>
-      <div class="how-grid">
-        <article class="how-card reveal"><div class="card-index">01 / GET THE PICTURE</div><div class="how-icon turquoise"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><rect x="7" y="12" width="50" height="34" rx="6" stroke="currentColor" stroke-width="3"/><path d="M20 54h24M32 46v8M15 29h11l4-7 7 15 4-8h8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Identify</h3><p>Import devices and software from the IT inventory you already have. Give every clinical system a clearer identity.</p><div class="how-card-foot">See what's in your care <span>↗</span></div></article>
-        <article class="how-card reveal"><div class="card-index">02 / CONNECT THE DOTS</div><div class="how-icon bluish"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="m8 25 24-13 24 13-24 13L8 25ZM8 35l24 13 24-13M8 45l24 13 24-13" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Understand</h3><p>Connect supported device details to published advisories, manufacturer notices, and trustworthy sources.</p><div class="how-card-foot">Know why it matters <span>↗</span></div></article>
-        <article class="how-card reveal"><div class="card-index">03 / MOVE FORWARD</div><div class="how-icon lavender"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><rect x="12" y="9" width="40" height="47" rx="7" stroke="currentColor" stroke-width="3"/><path d="m21 25 4 4 7-8M37 26h8m-24 14 4 4 7-8M37 41h8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Take action</h3><p>Turn technical risks into practical fix lists, assigned tasks, and reports your team can explain with confidence.</p><div class="how-card-foot">Make every step count <span>↗</span></div></article>
-      </div>
-      <div class="privacy-ribbon reveal"><span>✦</span> Your clinic's technology, not your patients' records. <strong>ClinicGuard is designed without patient data access.</strong></div>
-    </section>
-
-    <section class="platform-section" id="platform">
-      <div class="container">
-        <div class="platform-heading reveal"><div><div class="kicker">THE PLATFORM</div><h2>Made for the people<br>who keep clinics running.</h2></div><p>One peaceful place to see your clinics, track clinical technology, and focus on what needs attention. Built around real MSP workflows.</p></div>
-        <div class="dashboard-shell reveal">
-          <aside class="dash-sidebar"><div class="dash-logo"><span class="dash-mini-shield">✚</span> Clinic<span>Guard</span></div><div class="dash-side-caption">WORKSPACE</div><div class="dash-nav" role="tablist" aria-label="Dashboard views"><button role="tab" aria-selected="true" class="dash-tab active" data-tab="overview">◫ <span>Overview</span></button><button role="tab" aria-selected="false" class="dash-tab" data-tab="devices">▣ <span>Devices</span></button><button role="tab" aria-selected="false" class="dash-tab" data-tab="advisories">◇ <span>Advisories</span></button><button role="tab" aria-selected="false" class="dash-tab" data-tab="tasks">☷ <span>Fix lists</span></button></div><div class="dash-side-bottom"><div class="dash-avatar">RC</div><span>Riverside Clinic<small>Demo workspace</small></span><span class="chev">⌄</span></div></aside>
-          <div class="dash-main"><div class="dash-topline"><div class="dash-breadcrumb">Workspace <span>/</span> Riverside Clinic</div><div class="dash-topright"><span class="demo-dot"></span> Interactive demo <span class="dash-avatar small">JD</span></div></div>
-            <div class="dash-titlebar"><div><div class="dashboard-kicker">OVERVIEW</div><h3 id="dashboard-heading">Security at a glance</h3><p id="dashboard-subheading">A clearer picture of what needs your attention.</p></div><button class="dash-export" id="dash-export">Export sample report <span>↗</span></button></div>
-            <div id="dashboard-content" aria-live="polite"></div>
-            <div class="dash-footer">✦ Fictional demonstration data · No live scanning or vulnerability matching</div>
+        <div class="hero-copy">
+          <div class="eyebrow reveal"><span class="kicker">✦ Private daily planner + security guard</span><span class="eyebrow-line"></span></div>
+          <h1 id="hero-title" class="reveal d1">Plan your day.<br><span class="gradient-text">Guard your life.</span><br>Keep it all yours.</h1>
+          <p class="hero-lead reveal d2">ClinicGuard Personal turns your to-do list into tiny first steps you can actually start, and quietly checks whether your passwords or devices put you at risk. No account. No cloud. Your data never leaves your device.</p>
+          <div class="hero-actions reveal d3">
+            <a href="#app" class="btn btn-dark btn-lg">Start my day free ↗</a>
+            <a href="#app" class="btn btn-outline btn-lg" data-goto="guard">Run a private breach check</a>
+          </div>
+          <div class="hero-proof reveal d3">
+            <span class="chip"><i>✓</i> No sign-up</span>
+            <span class="chip"><i>✓</i> Stored only on this device</span>
+            <span class="chip"><i>✓</i> Pay once, not monthly</span>
           </div>
         </div>
-        <div class="platform-bottom reveal"><div class="platform-small-features"><span>✓ &nbsp; Clinical-first inventory</span><span>✓ &nbsp; Source-linked advisories</span><span>✓ &nbsp; Plain-English fix lists</span></div><a href="#tools" class="text-link">See what else ClinicGuard can do <span>↗</span></a></div>
+
+        <div class="hero-stage" aria-hidden="true">
+          <canvas id="orb"></canvas>
+          <div class="stage-3d" id="stage3d">
+            <div class="phone">
+              <div class="phone-notch"></div>
+              <small id="phoneDate">Today</small>
+              <h4>Good morning ☀️</h4>
+              <div class="p-task done"><span class="dot"></span>Submit lab report</div>
+              <div class="p-task"><span class="dot"></span>Study for networking quiz</div>
+              <div class="p-step">⚡ First step: open notes, pick the one topic you're least sure about</div>
+              <div class="p-task"><span class="dot"></span>Apply to 2 internships</div>
+              <div class="p-task"><span class="dot"></span>Pay phone bill</div>
+              <div class="p-guard"><div class="ring-mini">82</div><div><b>Guard check</b><span>Laptop needs an update</span></div></div>
+            </div>
+            <div class="float-card fc-1"><span class="ic aq">⚡</span><div>First step ready<small>"Write just the title"</small></div></div>
+            <div class="float-card fc-2"><span class="ic gr">🛡</span><div>Password not found<small>in known breaches</small></div></div>
+            <div class="float-card fc-3"><span class="ic lv">🔒</span><div>0 bytes uploaded<small>Everything stays local</small></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="wave wave-one" aria-hidden="true"></div>
+      <div class="wave wave-two" aria-hidden="true"></div>
+      <a href="#how" class="scroll-cue" aria-label="Scroll down"><span></span>SCROLL</a>
+    </section>
+
+    <div class="strip" aria-hidden="true">
+      <div class="strip-track">
+        <span><b>✦</b> Break tasks into first steps</span><span><b>✦</b> Private breach checks</span><span><b>✦</b> Device update reminders</span><span><b>✦</b> Works offline</span><span><b>✦</b> No account needed</span><span><b>✦</b> One-time price</span>
+        <span><b>✦</b> Break tasks into first steps</span><span><b>✦</b> Private breach checks</span><span><b>✦</b> Device update reminders</span><span><b>✦</b> Works offline</span><span><b>✦</b> No account needed</span><span><b>✦</b> One-time price</span>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS: sticky 3D cube -->
+    <section class="section" id="how" aria-labelledby="how-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="kicker">How it works</span>
+          <h2 id="how-title">From <span class="gradient-text">"I can't start"</span> to done, in three steps.</h2>
+          <p>You already know what you need to do. ClinicGuard Personal helps you start, and keeps watch while you work.</p>
+        </div>
+        <div class="steps">
+          <div class="steps-visual" aria-hidden="true">
+            <div class="cube" id="cube">
+              <div class="face face-1"><div class="big-ic ic aq">📝</div><h3>Plan</h3><p>Dump everything on your mind. Pick what matters today.</p><div class="mini"><div>☐ Finish essay draft</div><div>☐ Email professor</div><div>☐ Grocery run</div></div></div>
+              <div class="face face-2"><div class="big-ic ic lv">⚡</div><h3>Start</h3><p>Every task gets a tiny first step and a 2-minute timer.</p><div class="mini"><div>⚡ Write just the title + 3 bullets</div><div>⏱ 2:00 focus started</div></div></div>
+              <div class="face face-3"><div class="big-ic" style="background:rgba(255,255,255,.14)">🛡</div><h3>Guard</h3><p>A quiet daily check on your passwords and devices.</p><div class="mini"><div>✓ Password not in breaches</div><div>! iPhone update overdue</div></div></div>
+            </div>
+          </div>
+          <div class="step-list">
+            <article class="step" data-step="0"><span class="num">1</span><h3>Plan your day in seconds</h3><p>Type what's on your mind. Tap a suggestion. Your list lives on this device only, so it's yours, it's fast, and it works offline.</p></article>
+            <article class="step" data-step="1"><span class="num">2</span><h3>Get a first step you can't say no to</h3><p>Stuck? Tap ⚡ and the task turns into one tiny action, like "write just the title." Then hit the 2-minute timer. Starting is the hardest part, so we make it small.</p></article>
+            <article class="step" data-step="2"><span class="num">3</span><h3>Your Guard checks in, quietly</h3><p>Once a day, ClinicGuard looks at what you've told it: are any of your passwords in known data breaches? Are your phone and laptop overdue for security updates? Anything urgent shows up right in your day.</p></article>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="section features-section container" id="why"><div class="section-header centered reveal"><div class="kicker">THOUGHTFULLY DIFFERENT</div><h2>Technology should feel like <span class="gradient-text">a helping hand.</span></h2><p>Less noise. More context. And a human explanation behind every technical finding.</p></div><div class="features-grid"><article class="feature-tile feature-primary reveal"><span class="feature-orbit">✦</span><div class="feature-glyph">⌁</div><h3>Clinical context,<br>not just CVE lists.</h3><p>Understand what a device does and why a finding may matter to clinical operations. Only verified matches are presented as confirmed.</p><div class="feature-surface"><span class="surface-chip">IMAGING WORKSTATION</span><div class="surface-row"><span>Operating system support</span><b>Review needed</b></div><div class="surface-row"><span>Manufacturer guidance</span><b>Check advisory</b></div></div></article><article class="feature-tile reveal"><div class="feature-icon-small">⌘</div><h3>Built around your workflow.</h3><p>Start with inventories your MSP already uses. No risky clinical network probing required for this first version.</p><div class="feature-decoration lines"><i></i><i></i><i></i></div></article><article class="feature-tile reveal"><div class="feature-icon-small violet">◎</div><h3>Reports that humans understand.</h3><p>Give technical teams and clinic managers a shared, understandable view of risk and progress.</p><div class="feature-decoration report"><span>Monthly security overview</span><i></i><i></i><i></i></div></article></div></section>
+    <!-- LIVE APP -->
+    <section class="section app-section" id="app" aria-labelledby="app-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="kicker">Live · try it now</span>
+          <h2 id="app-title">This is the real app. <span class="gradient-text">Go ahead, use it.</span></h2>
+          <p>Everything below saves to this browser only. Close the tab and come back: your day will still be here.</p>
+        </div>
 
-    <section class="tools-section" id="tools"><div class="container"><div class="tools-heading reveal"><div><div class="kicker">FOR PATIENTS & FAMILIES</div><h2>A little more clarity.<br><span class="gradient-text">For everyone.</span></h2><p>Free public-interest tools for understanding medical-device notices and healthcare security incidents.</p></div><div class="tool-label">NO ACCOUNT NEEDED <span>✧</span></div></div><div class="tool-grid"><article class="tool-card aqua reveal"><div class="tool-card-top"><div class="tool-icon">♡</div><span class="free-pill">FREE TOOL</span></div><h3>Medical Device Check</h3><p>Look up public recalls and safety notices for a device you use at home, from CPAP machines to glucose monitors.</p><button class="btn tool-btn" data-open-tool="device">Check a device <span>↗</span></button><div class="tool-orbit orbit-one"></div></article><article class="tool-card purple reveal"><div class="tool-card-top"><div class="tool-icon">✳</div><span class="free-pill">FREE TOOL</span></div><h3>Provider Breach Lookup</h3><p>Understand public healthcare breach reports, with clear source information and practical questions to ask.</p><button class="btn tool-btn" data-open-tool="breach">Search a provider <span>↗</span></button><div class="tool-orbit orbit-two"></div></article></div><p class="tool-disclaimer reveal">Our free tools are currently interactive concept demos using fictional records. They do not verify personal exposure, device safety, or live vulnerabilities.</p></div></section>
+        <div class="app-shell pre" id="appShell">
+          <aside class="app-side" role="tablist" aria-label="App sections">
+            <div class="who" id="greeting">Good day</div>
+            <div class="date" id="todayDate"></div>
+            <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true" data-tab="today"><span class="ti">☀️</span>Today</button>
+            <button class="tab" role="tab" id="tab-guard" aria-controls="panel-guard" aria-selected="false" data-tab="guard"><span class="ti">🛡</span>Guard<span class="badge" id="guardBadge" hidden>!</span></button>
+            <button class="tab" role="tab" id="tab-devices" aria-controls="panel-devices" aria-selected="false" data-tab="devices"><span class="ti">💻</span>Devices</button>
+            <button class="tab" role="tab" id="tab-privacy" aria-controls="panel-privacy" aria-selected="false" data-tab="privacy"><span class="ti">🔒</span>My data</button>
+            <div class="side-foot"><b>●</b> Local only<br>Nothing here is uploaded. Check "My data" to see exactly what's stored.</div>
+          </aside>
 
-    <section class="human-section"><div class="container human-inner"><div class="human-mark reveal">✚ <span>Care is personal.</span></div><div class="human-copy reveal"><div class="kicker">WHY WE'RE HERE</div><h2>Behind every device,<br>there's <em>someone who matters.</em></h2><p>It's easy to think cybersecurity is all systems, patches, and reports. We think it's about helping care teams focus on what matters most: the people counting on them.</p><button class="btn btn-light" data-open-demo>Let's talk about your clinics <span>↗</span></button></div></div></section>
+          <div class="app-main">
+            <!-- TODAY -->
+            <div class="panel" id="panel-today" role="tabpanel" aria-labelledby="tab-today">
+              <div class="panel-head">
+                <div><span class="kicker">Today</span><h3 id="todayTitle">Let's make today easy</h3><p id="todaySub">Add what's on your mind. Tap ⚡ when you're stuck.</p></div>
+                <button class="btn btn-soft" id="clearDone">Clear completed</button>
+              </div>
+              <div class="stat-row">
+                <div class="stat"><div class="ring" id="dayRing" data-label="0%"></div><div><small>Done today</small><b id="doneCount">0 / 0</b></div></div>
+                <div class="stat"><div class="ring" id="streakRing" data-label="🔥" style="--p:100"></div><div><small>Day streak</small><b id="streakCount">0 days</b></div></div>
+                <div class="stat"><div class="ring" id="guardRingMini" data-label="—"></div><div><small>Guard score</small><b id="guardMini">Not checked</b></div></div>
+              </div>
+              <div class="guard-alert" id="guardAlert" hidden>
+                <span class="ic">🛡</span>
+                <div><b id="guardAlertTitle">Guard found something</b><span id="guardAlertText"></span></div>
+                <button class="btn btn-soft" id="addGuardTasks">Add to today</button>
+              </div>
+              <form class="add-row" id="addForm" autocomplete="off">
+                <label for="taskInput" class="sr-only">New task</label>
+                <input class="input" id="taskInput" placeholder="What do you need to do today?" maxlength="120" />
+                <button class="btn btn-dark" type="submit">Add task</button>
+              </form>
+              <div class="suggest" aria-label="Quick add suggestions">
+                <button data-suggest="Study for my next exam">📚 Study</button>
+                <button data-suggest="Apply to an internship">💼 Apply</button>
+                <button data-suggest="Reply to emails">✉️ Emails</button>
+                <button data-suggest="Pay my bills">💳 Bills</button>
+                <button data-suggest="Clean my room">🧹 Clean</button>
+                <button data-suggest="Go to the gym">💪 Gym</button>
+              </div>
+              <ul class="task-list" id="taskList" aria-live="polite"></ul>
+            </div>
 
-    <section class="cta-section container reveal"><div class="cta-content"><div class="kicker">TAKE THE NEXT STEP</div><h2>More peace of mind<br><span>starts with clarity.</span></h2><p>See how a healthcare-focused security workspace could fit your team.</p><div class="cta-actions"><button class="btn btn-dark btn-xl" data-open-demo>Request a conversation <span>↗</span></button><a class="btn btn-outline btn-xl" href="#tools">Try our free tools <span>↗</span></a></div></div><div class="cta-art" aria-hidden="true"><div class="cta-ring one"></div><div class="cta-ring two"></div><div class="cta-ring three"></div><div class="cta-center">✚</div></div></section>
+            <!-- GUARD -->
+            <div class="panel" id="panel-guard" role="tabpanel" aria-labelledby="tab-guard" hidden>
+              <div class="panel-head"><div><span class="kicker">Guard</span><h3>Your daily safety check</h3><p>Private checks. You'll always see exactly what leaves your device.</p></div></div>
+              <div class="guard-grid">
+                <div class="card score-card">
+                  <div class="ring big" id="guardRing" data-label="—"></div>
+                  <div>
+                    <h4>Guard score</h4>
+                    <ul class="checklist" id="guardChecklist"></ul>
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="soon">COMING IN V2</span>
+                  <h4>Email breach alerts</h4>
+                  <p>Checking an email address means sending that email to a breach database, so it can't be fully private. When we add it, we'll ask you first and show you exactly what's sent.</p>
+                </div>
+              </div>
+              <div class="card" style="margin-top:16px">
+                <h4>🔑 Has my password been leaked?</h4>
+                <p>Uses the free Have I Been Pwned password database. Your password is scrambled on this device, and only the <b>first 5 characters</b> of the scrambled version are sent. Your actual password never leaves this browser and is never saved.</p>
+                <form class="pw-row" id="pwForm" autocomplete="off">
+                  <div class="pw-wrap">
+                    <label for="pwInput" class="sr-only">Password to check</label>
+                    <input class="input" id="pwInput" type="password" placeholder="Type a password to check" autocomplete="off" />
+                    <button type="button" class="pw-eye" id="pwEye" aria-label="Show password">👁</button>
+                  </div>
+                  <button class="btn btn-aqua" type="submit" id="pwBtn">Check privately</button>
+                </form>
+                <div class="result" id="pwResult" role="status"></div>
+              </div>
+            </div>
+
+            <!-- DEVICES -->
+            <div class="panel" id="panel-devices" role="tabpanel" aria-labelledby="tab-devices" hidden>
+              <div class="panel-head"><div><span class="kicker">Devices</span><h3>Keep your stuff updated</h3><p>Security updates fix holes attackers use. We'll remind you when a device is overdue.</p></div></div>
+              <div class="detect" id="detect"></div>
+              <form class="dev-form" id="devForm" autocomplete="off">
+                <label class="sr-only" for="devType">Device type</label>
+                <select class="select" id="devType">
+                  <option value="phone">📱 Phone</option><option value="laptop">💻 Laptop</option><option value="tablet">📲 Tablet</option><option value="router">📶 Wi-Fi router</option><option value="watch">⌚ Watch</option><option value="other">🔌 Other</option>
+                </select>
+                <label class="sr-only" for="devName">Device name</label>
+                <input class="input" id="devName" placeholder="e.g. My iPhone 15" maxlength="40" />
+                <label class="sr-only" for="devDate">Last updated</label>
+                <input class="input" id="devDate" type="date" />
+                <button class="btn btn-dark" type="submit">Add</button>
+              </form>
+              <div class="dev-list" id="devList"></div>
+            </div>
+
+            <!-- PRIVACY -->
+            <div class="panel" id="panel-privacy" role="tabpanel" aria-labelledby="tab-privacy" hidden>
+              <div class="panel-head"><div><span class="kicker">My data</span><h3>Exactly what's stored, and where</h3><p>No account, no server database. You can export or erase everything in one tap.</p></div></div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <table class="ledger">
+                  <thead><tr><th>What</th><th>Where it lives</th><th>Right now</th></tr></thead>
+                  <tbody id="ledger"></tbody>
+                </table>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+                <button class="btn btn-soft" id="exportBtn">⬇ Export my data (JSON)</button>
+                <button class="btn btn-soft danger" id="wipeBtn">🗑 Erase everything</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY: 3D tilt cards -->
+    <section class="section" aria-labelledby="why-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="kicker">Why it's different</span>
+          <h2 id="why-title">Other planners organize you. <span class="gradient-text">This one protects you.</span></h2>
+        </div>
+        <div class="tilt-grid">
+          <div class="tilt aq reveal" data-tilt><div class="shine"></div><div class="t-ic ic aq" style="background:#fff">⚡</div><h3>Built for starting, not just listing</h3><p>Most to-do apps stop at the list. We break every task into one small first step and a 2-minute timer, so "later" turns into "now."</p></div>
+          <div class="tilt lv reveal d1" data-tilt><div class="shine"></div><div class="t-ic ic lv" style="background:#fff">🔒</div><h3>Private by design, not by promise</h3><p>Your tasks, devices and check history live in your browser's storage. There's no account and no server copy to hack.</p></div>
+          <div class="tilt dk reveal d2" data-tilt><div class="shine"></div><div class="t-ic" style="background:rgba(255,255,255,.14)">🛡</div><h3>Made by a security student</h3><p>ClinicGuard started as security software for medical clinics. Personal brings the same "find the risk, show the fix" thinking to your own life.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIVACY FLOW -->
+    <section class="section" id="privacy" style="background:linear-gradient(175deg,#fafcff,#f7f6ff)" aria-labelledby="privacy-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="kicker">Privacy you can see</span>
+          <h2 id="privacy-title">How a breach check stays private</h2>
+          <p>We use a technique called k-anonymity. The database only ever sees a tiny piece of a scrambled code shared by hundreds of other passwords.</p>
+        </div>
+        <div class="flow reveal d1">
+          <div class="flow-node you"><div class="fi">⌨️</div><b>You type a password</b><code>••••••••••</code><small>Stays in this browser. Never saved.</small></div>
+          <div class="flow-arrow" aria-hidden="true"></div>
+          <div class="flow-node"><div class="fi">🔐</div><b>Scrambled on your device</b><code>5BAA6 1E4C9B93F3F06…</code><small>A one-way SHA-1 code. Can't be turned back into your password.</small></div>
+          <div class="flow-arrow" aria-hidden="true"></div>
+          <div class="flow-node out"><div class="fi">🌐</div><b>Only 5 characters sent</b><code>5BAA6</code><small>The database returns hundreds of matches, and your device checks the list locally.</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="section" id="pricing" aria-labelledby="pricing-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="kicker">Pricing</span>
+          <h2 id="pricing-title">Pay once. <span class="gradient-text">Own it.</span></h2>
+          <p>Tired of subscriptions? Us too. Try everything free, then unlock it for good with one payment.</p>
+        </div>
+        <div class="price-wrap">
+          <div class="price reveal"><h3>Free</h3><div class="amt">$0</div><p class="note">Forever, on one device</p><ul><li>Daily planner + first steps</li><li>2-minute focus timer</li><li>Private password breach checks</li><li>Up to 3 devices</li></ul><a href="#app" class="btn btn-outline" style="width:100%">Start free</a></div>
+          <div class="price hl reveal d1"><h3>Personal</h3><div class="amt">$19 <small>once</small></div><p class="note">Planned launch price · no subscription</p><ul><li>Everything in Free</li><li>Unlimited devices</li><li>Encrypted backup file you control</li><li>Email breach alerts (v2, opt-in)</li><li>All future updates to v1</li></ul><button class="btn btn-aqua" style="width:100%" id="waitlistBtn">Join the early-access list</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq" style="padding-top:20px" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-head reveal"><span class="kicker">FAQ</span><h2 id="faq-title">Good questions</h2></div>
+        <div class="faq reveal">
+          <details><summary>Where is my data stored?</summary><p>In your browser's local storage on this device. There's no ClinicGuard account or server database. The only thing that ever leaves your device is the 5-character piece of a scrambled password, and only when you press "Check privately."</p></details>
+          <details><summary>Is the first-step feature AI?</summary><p>Not yet. Today it's a built-in set of rules that works offline, so nothing about your tasks is sent anywhere. An optional AI version is on the roadmap, and it will always be your choice to turn it on.</p></details>
+          <details><summary>How does the device update check work?</summary><p>Phones and browsers don't let websites look inside your device, which is good for your privacy. So you tell ClinicGuard when each device was last updated, and it reminds you when it's overdue. We can also detect what device you're on right now to save you typing.</p></details>
+          <details><summary>What happens if I clear my browser data?</summary><p>Your planner is erased too, because it only lives here. Use "Export my data" in the My data tab to keep a backup file.</p></details>
+          <details><summary>Who's building this?</summary><p>ClinicGuard is a student startup from Penn State, built by a cybersecurity student. This is an early version, and we'd love your feedback.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="cta reveal" aria-labelledby="cta-title">
+        <div class="cta-ring" style="width:300px;height:300px"></div><div class="cta-ring" style="width:520px;height:520px"></div><div class="cta-ring" style="width:760px;height:760px"></div>
+        <span class="kicker">Your day, your data</span>
+        <h2 id="cta-title">Start today. <span class="gradient-text">Stay guarded.</span></h2>
+        <p>No sign-up, no download. Your first step is literally one tap away.</p>
+        <a href="#app" class="btn btn-dark btn-lg">Open my day ↗</a>
+      </section>
+    </div>
   </main>
-  <footer class="footer"><div class="container footer-main"><div><a href="#top" class="brand footer-brand"><span class="brand-emblem">✚</span><span>Clinic<span class="brand-accent">Guard</span></span></a><p>Protecting the technology<br>behind better care.</p></div><div class="footer-links"><div><strong>Explore</strong><a href="#how">How it works</a><a href="#platform">Platform</a><a href="#tools">Free tools</a></div><div><strong>Company</strong><a href="#why">Our approach</a><button data-open-demo>Get in touch</button><button data-open-demo>Contact us</button></div><div><strong>Important</strong><button data-info="privacy">Privacy overview</button><button data-info="disclaimer">Disclaimer</button><button data-info="security">Security principles</button></div></div></div><div class="container footer-bottom"><span>© <span id="copyright-year"></span> ClinicGuard. Concept website.</span><span>Built by <strong>Hamza Harafat</strong></span></div></footer>
 
-  <div class="modal-backdrop" id="modal-backdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" aria-label="Close dialog" id="modal-close">×</button><div id="modal-body"></div></div></div>
+  <footer class="footer">
+    <div class="container">
+      <span>© <span id="year"></span> ClinicGuard · Student startup · Penn State</span>
+      <span>Looking for the clinic & MSP platform? <a href="msp.html">ClinicGuard for clinics →</a></span>
+    </div>
+  </footer>
+
+  <div class="focus" id="focus" hidden role="dialog" aria-modal="true" aria-labelledby="focusTitle">
+    <div class="focus-card">
+      <span class="kicker">Just 2 minutes</span>
+      <h3 id="focusTitle">First step</h3>
+      <p id="focusStep"></p>
+      <div class="timer" id="timer"><span id="timerText">2:00</span></div>
+      <div class="focus-actions">
+        <button class="btn btn-dark" id="focusDone">I started ✓</button>
+        <button class="btn btn-soft" id="focusClose">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js" defer></script>
 </body>

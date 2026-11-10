@@ -1,10 +1,8 @@
-# ClinicGuard — Interactive Website Concept
+# ClinicGuard Personal
 
-A fully self-contained, responsive HTML/CSS/JavaScript concept website for ClinicGuard, based on the user's supplied indigo–aqua–lavender reference and generated visual direction.
+A private daily planner with a built-in security "Guard". Static site, no build step, no API keys.
 
 ## Run locally
-
-Open `index.html` in a browser, or serve the folder with:
 
 ```bash
 python3 -m http.server 8000
@@ -12,36 +10,23 @@ python3 -m http.server 8000
 
 Then visit http://localhost:8000.
 
-No npm installation or API keys needed.
+## What works (real, not mocked)
 
-## What's interactive
+- **Today:** add tasks, quick-add suggestions, offline "first step" for every task, 2-minute start timer, progress ring, day streak.
+- **Guard:** private password breach check using the Have I Been Pwned Pwned Passwords range API (k-anonymity). Only the first 5 characters of the SHA-1 hash are sent; the password is never stored. Guard score combines password check recency, unresolved leaks, and device update status. Issues can be added to Today as tasks.
+- **Devices:** detects the current device/browser, tracks last update dates, flags devices overdue (>30 days check soon, >60 overdue) with how-to steps.
+- **My data:** shows exactly what is stored and what was sent, JSON export, erase everything.
+- All data is stored in the browser's localStorage only. No accounts, no server.
 
-- Responsive nav and scroll transitions
-- Dashboard tabs: Overview, Devices, Advisories, Fix Lists
-- Filterable, searchable fictional device inventory
-- Asset-detail modals
-- CSV export of the fictional sample inventory
-- Medical device lookup and provider breach lookup concept forms
-- Demo inquiry form with a copyable summary (not sent anywhere)
-- Accessible modal dialogs, keyboard focus states, reduced-motion support
+## Honest limits (early version)
 
-## Important demo-only boundaries
+- "First step" uses built-in rules, not AI.
+- Email breach alerts are planned for v2 (an email check can't be fully private, so it will be opt-in).
+- Websites can't inspect a device's real update status, so update dates are entered by the user.
+- Pricing ($19 one-time) is a planned launch price; the early-access button does not collect data yet.
 
-- Dashboard devices and metrics are **fictional**.
-- No real vulnerability scanning or advisory matching occurs.
-- Free-tool searches do **not** call FDA/HHS APIs; they explain limitations and link to official resources.
-- Demo form does **not** transmit or store personal information.
-- No patient records or PHI are collected.
-- Trust statements describe the product's intended approach, not unverified certifications.
+## Files
 
-## Going live
-
-Before deployment: replace concept images with a properly licensed source image; configure an actual company contact address and a secured form endpoint; connect and validate external advisory sources; complete privacy/security and accessibility review; implement real authentication and tenancy if launching the MSP app. The hero crop is taken from the user-provided design mockup, so usage rights must be checked for commercial launch.
-
-## Primary files
-
-- `index.html` — page structure and content
-- `styles.css` — responsive design system and motion
-- `app.js` — interactive dashboard, sample data, dialogs and tools
-- `assets/family-hero.png` — hero visual cropped from the user-provided concept image
-- `assets/reference-design.png` — original reference mockup
+- `index.html`, `styles.css`, `app.js`: ClinicGuard Personal (homepage)
+- `msp.html`, `msp-styles.css`, `msp-app.js`: original ClinicGuard clinic/MSP concept site (kept for reference, linked in the footer)
+- `assets/`: images used by the MSP concept page

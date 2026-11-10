@@ -1,65 +1,440 @@
-// ClinicGuard concept website. All product data and tool results are intentionally fictional.
-const demoAssets = [
-  { name: 'Imaging workstation 01', type: 'Clinical workstation', issue: 'OS support review', risk: 'High', status: 'Open', owner:'Dental imaging team', detail:'A review is needed to verify the installed operating system is still supported by both its publisher and the imaging software manufacturer. No live vulnerability match has been performed.' },
-  { name: 'Panoramic X-ray system', type: 'Imaging device', issue: 'Model information incomplete', risk: 'Review', status: 'Needs review', owner:'Practice manager', detail:'Complete the manufacturer and firmware fields, then compare the specific model against published manufacturer guidance. No exposure is confirmed.' },
-  { name: 'Reception PC 02', type: 'Workstation', issue: 'Inventory current', risk: 'OK', status: 'Tracked', owner:'IT services', detail:'This fictional asset has no outstanding finding in the sample workspace. That does not establish that it is secure.' },
-  { name: 'Imaging archive server', type: 'Clinical server', issue: 'Configuration review', risk: 'Medium', status: 'In progress', owner:'IT services', detail:'Review documented access controls and patching responsibilities with the supported clinical software vendor.' },
-  { name: 'Autoclave controller', type: 'Clinical equipment', issue: 'Version not recorded', risk: 'Review', status: 'Needs review', owner:'Facilities', detail:'Capture the device model and supported firmware version before assessing exposure.' },
-  { name: 'Network switch', type: 'Network equipment', issue: 'Inventory current', risk: 'OK', status: 'Tracked', owner:'IT services', detail:'No issue has been recorded in the fictional sample. No live network assessment has been performed.' }
-];
-const dashboard = document.querySelector('#dashboard-content');
-const heading = document.querySelector('#dashboard-heading');
-const subheading = document.querySelector('#dashboard-subheading');
-const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const statusBadge = risk => `<span class="pill ${risk.toLowerCase()}">${escapeHtml(risk)}</span>`;
-const table = (assets, action = true) => `<div class="dash-table-wrap"><table class="dash-table"><thead><tr><th>DEVICE / SOFTWARE</th><th>TYPE</th><th>FINDING</th><th>PRIORITY</th>${action?'<th>ACTION</th>':''}</tr></thead><tbody>${assets.length ? assets.map((a)=>`<tr><td><span class="asset-name">${escapeHtml(a.name)}</span></td><td>${escapeHtml(a.type)}</td><td>${escapeHtml(a.issue)}</td><td>${statusBadge(a.risk)}</td>${action?`<td><button class="table-action" data-asset="${demoAssets.indexOf(a)}">Details ↗</button></td>`:''}</tr>`).join('') : '<tr><td colspan="5">No matching assets in this demo.</td></tr>'}</tbody></table></div>`;
-function overview(){
- heading.textContent='Security at a glance'; subheading.textContent='A clearer picture of what needs your attention.';
- dashboard.innerHTML=`<div class="metric-grid"><div class="metric-card"><div class="metric-label">Devices tracked</div><div class="metric-value">48 <span class="metric-chip">sample</span></div></div><div class="metric-card"><div class="metric-label">Open findings</div><div class="metric-value">6</div></div><div class="metric-card"><div class="metric-label">High priority</div><div class="metric-value">2</div></div><div class="metric-card"><div class="metric-label">Tasks in progress</div><div class="metric-value">3</div></div></div><div class="dash-section-row"><div class="dash-panel"><h4>Device review status</h4><div class="risk-layout"><div class="donut"><div class="donut-hole"><b>48</b>assets</div></div><div class="risk-legend"><div><span><i class="legend-dot" style="background:#46c6c4"></i>Tracked</span><strong>57%</strong></div><div><span><i class="legend-dot" style="background:#7cc4e2"></i>Needs review</span><strong>20%</strong></div><div><span><i class="legend-dot" style="background:#a78de9"></i>Open finding</span><strong>16%</strong></div><div><span><i class="legend-dot" style="background:#edf1f9"></i>Unknown</span><strong>7%</strong></div></div></div></div><div class="dash-panel"><h4>Review activity · illustrative trend</h4><div class="trend-wrap"><svg viewBox="0 0 340 125" aria-label="Fictional downward trend line"><defs><linearGradient id="chartfill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#b9edf1" stop-opacity=".5"/><stop offset="1" stop-color="#e8e9ff" stop-opacity=".1"/></linearGradient></defs><path d="M0 36C30 16 44 51 76 44S127 62 158 71 202 52 233 77 295 91 340 96V125H0Z" fill="url(#chartfill)"/><path d="M0 36C30 16 44 51 76 44S127 62 158 71 202 52 233 77 295 91 340 96" stroke="#45becd" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M0 27C30 46 44 25 76 55S127 49 158 63 202 82 233 66 295 99 340 86" stroke="#ab93e9" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><strong style="font-size:11px">Selected devices & findings</strong><button class="table-action" data-switch="devices">View all ↗</button></div>${table(demoAssets.slice(0,3))}`;
-}
-function devices(){heading.textContent='Clinical device inventory';subheading.textContent='Search and review the sample clinic assets.';dashboard.innerHTML=`<div class="dash-table-filters"><input class="dash-input" id="asset-search" placeholder="Search devices or software..." aria-label="Search device inventory"/><select id="asset-filter" class="dash-select" aria-label="Filter by priority"><option value="all">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Review">Review</option><option value="OK">OK</option></select></div><div id="asset-table"></div><p style="font-size:11px;color:#8692aa;line-height:1.7">Example device data only. Production inventory import and vendor integrations are not connected.</p>`;renderFilteredAssets();dashboard.querySelector('#asset-search').addEventListener('input',renderFilteredAssets);dashboard.querySelector('#asset-filter').addEventListener('change',renderFilteredAssets)}
-function renderFilteredAssets(){const q=(dashboard.querySelector('#asset-search')?.value||'').toLowerCase(),risk=dashboard.querySelector('#asset-filter')?.value||'all';const filtered=demoAssets.filter(a=>(risk==='all'||a.risk===risk)&&(`${a.name} ${a.type} ${a.issue}`).toLowerCase().includes(q));const el=dashboard.querySelector('#asset-table');if(el)el.innerHTML=table(filtered)}
-function advisories(){heading.textContent='Advisory intelligence';subheading.textContent='Make sense of documented notices with the right context.';dashboard.innerHTML=`<div class="metric-grid"><div class="metric-card"><div class="metric-label">Sources monitored</div><div class="metric-value">3</div></div><div class="metric-card"><div class="metric-label">Model matches</div><div class="metric-value">0</div></div><div class="metric-card"><div class="metric-label">Needs verification</div><div class="metric-value">2</div></div><div class="metric-card"><div class="metric-label">Last updated</div><div class="metric-value" style="font-size:17px">Demo</div></div></div><div class="modal-result"><strong>How the real product would work</strong><p>ClinicGuard would compare verified manufacturer, model, firmware and OS details against authoritative public advisories. Matches would link to their original source and state their confidence.</p><ul><li>CISA medical/ICS advisories</li><li>Manufacturer security bulletins</li><li>NVD and vendor-specific notices where appropriate</li></ul></div><div class="dashboard-empty" style="margin-top:14px"><strong>No verified advisory matches in this sample</strong>No real inventory or advisory database is connected. We won't invent matches for a demo.</div>`}
-function tasks(){heading.textContent='Fix lists & follow-ups';subheading.textContent='Keep the team focused on clear, reviewable next steps.';dashboard.innerHTML=`<div class="metric-grid"><div class="metric-card"><div class="metric-label">Open tasks</div><div class="metric-value">3</div></div><div class="metric-card"><div class="metric-label">In review</div><div class="metric-value">2</div></div><div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value">4</div></div><div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value">1</div></div></div><div class="dash-table-wrap" style="margin-top:15px"><table class="dash-table"><thead><tr><th>TASK</th><th>ASSIGNED TO</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody>${[['Verify imaging workstation OS support','IT services','Open'],['Confirm X-ray unit model and firmware','Practice manager','Needs review'],['Document imaging server vendor guidance','IT services','In progress']].map((t,i)=>`<tr><td><span class="asset-name">${t[0]}</span></td><td>${t[1]}</td><td><span class="pill review">${t[2]}</span></td><td><button class="table-action" data-task="${i}">Review ↗</button></td></tr>`).join('')}</tbody></table></div><div class="modal-result">A production version would support assignment, evidence attachments, due dates and an audit history. This preview does not save changes.</div>`}
-function switchTab(name){document.querySelectorAll('.dash-tab').forEach(el=>{const active=el.dataset.tab===name;el.classList.toggle('active',active);el.setAttribute('aria-selected',active?'true':'false')});({overview,devices,advisories,tasks}[name]||overview)()}
-document.querySelectorAll('.dash-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
-dashboard.addEventListener('click',e=>{const asset=e.target.closest('[data-asset]');if(asset){const a=demoAssets[Number(asset.dataset.asset)];if(a)openModal(`<div class="kicker">SAMPLE ASSET DETAILS</div><h2>${escapeHtml(a.name)}</h2><p>${escapeHtml(a.type)} · ${escapeHtml(a.owner)}</p><div class="modal-result"><span class="demo-watermark">DEMONSTRATION ONLY</span><br><strong>${escapeHtml(a.issue)}</strong><p>${escapeHtml(a.detail)}</p><p><strong>Priority:</strong> ${escapeHtml(a.risk)} &nbsp; <strong>Status:</strong> ${escapeHtml(a.status)}</p></div>`)}const sw=e.target.closest('[data-switch]');if(sw)switchTab(sw.dataset.switch);const task=e.target.closest('[data-task]');if(task){toast('This task is part of the interactive sample. Live editing comes with the product workspace.')}});
-document.querySelector('#dash-export').addEventListener('click',()=>{const lines=['ClinicGuard — Fictional Sample Risk Report','This is not a live security scan or HIPAA compliance determination.','','Sample workspace: Riverside Clinic','','Device,Type,Finding,Priority,Status',...demoAssets.map(a=>[a.name,a.type,a.issue,a.risk,a.status].map(v=>'"'+v.replaceAll('"','""')+'"').join(','))];const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clinicguard-demo-inventory.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast('Fictional sample inventory exported as CSV.')});
-const backdrop=document.querySelector('#modal-backdrop'),body=document.querySelector('#modal-body'),closeModalButton=document.querySelector('#modal-close');let lastFocus=null;
-function openModal(html){lastFocus=document.activeElement;body.innerHTML=html;const modalHeading=body.querySelector('h2');if(modalHeading)modalHeading.id='modal-title';backdrop.hidden=false;document.body.style.overflow='hidden';closeModalButton.focus()}
-function closeModal(){backdrop.hidden=true;document.body.style.overflow='';if(lastFocus?.focus)lastFocus.focus()}
-closeModalButton.addEventListener('click',closeModal);backdrop.addEventListener('click',e=>{if(e.target===backdrop)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.hidden)closeModal();if(e.key==='Tab'&&!backdrop.hidden){const focusables=[...backdrop.querySelectorAll('button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),a[href]')].filter(el=>el.offsetParent!==null);if(!focusables.length)return;const first=focusables[0],last=focusables.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
-let toastTimer;function toast(message){const el=document.querySelector('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3500)}
-const demoModalHtml=`<div class="kicker">START A CONVERSATION</div><h2>Let's make healthcare technology clearer.</h2><p>Tell us what you're interested in. This concept demo doesn't have a connected sales inbox yet, so no information will be transmitted.</p><form id="demo-form"><label for="demo-name">Your name</label><input id="demo-name" name="name" required maxlength="100" placeholder="Your name"/><label for="demo-email">Work email</label><input type="email" id="demo-email" name="email" required maxlength="150" placeholder="you@company.com"/><label for="demo-role">I am a...</label><select id="demo-role" name="role"><option>Healthcare IT / MSP</option><option>Clinic owner or manager</option><option>Healthcare professional</option><option>Other</option></select><label for="demo-message">What would you like to explore?</label><textarea id="demo-message" name="message" maxlength="1200" placeholder="Tell us about your clinic or MSP's challenges..."></textarea><button type="submit" class="btn btn-dark">Preview my request ↗</button><div class="form-note">Demo only: this site does not collect or send submissions. You can copy your message on the next screen.</div></form>`;
-document.querySelectorAll('[data-open-demo]').forEach(b=>b.addEventListener('click',()=>{openModal(demoModalHtml)}));
-backdrop.addEventListener('submit', e => {
-  if (e.target.id === 'demo-form') {
+/* ClinicGuard Personal — everything runs in the browser. Data lives in localStorage only. */
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const KEY = 'clinicguard-personal:v1';
+  const DAY = 86400000;
+
+  /* ---------- storage ---------- */
+  const fresh = () => ({ tasks: [], devices: [], days: {}, pw: { last: null, lastPrefix: null, breached: false, resolved: true }, guardTasksAddedOn: null });
+  let state;
+  try { state = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { state = fresh(); }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage unavailable: app still works for this session */ } };
+
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const daysSince = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / DAY) : null;
+
+  // New day: drop tasks completed on previous days, carry unfinished ones forward
+  const today = dayKey();
+  state.tasks = state.tasks.filter(t => !(t.done && t.doneOn && t.doneOn !== today));
+  save();
+
+  /* ---------- toast + confetti ---------- */
+  const toastEl = $('#toast'); let toastT;
+  const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 3200); };
+  const confetti = (x, y) => {
+    if (reduceMotion) return;
+    const colors = ['#48bfce', '#b5a1e8', '#567cbd', '#7de3ea', '#9687d4'];
+    for (let i = 0; i < 18; i++) {
+      const c = document.createElement('i'); c.className = 'confetti';
+      c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.background = colors[i % colors.length];
+      const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 80;
+      c.style.setProperty('--dx', Math.cos(a) * d + 'px'); c.style.setProperty('--dy', Math.sin(a) * d - 40 + 'px');
+      document.body.appendChild(c); setTimeout(() => c.remove(), 1000);
+    }
+  };
+
+  /* ---------- first-step engine (offline rules, no AI, nothing sent) ---------- */
+  const RULES = [
+    [/essay|paper|report|write|draft|thesis|blog/i, 'Open a blank doc and write just the title and 3 bullet ideas.'],
+    [/stud|exam|quiz|test|midterm|final|review/i, "Open your notes and pick the ONE topic you're least sure about."],
+    [/apply|application|internship|job|resume|cv|cover letter/i, 'Open the posting and copy its 3 key requirements into a note.'],
+    [/email|reply|message|text|dm|respond/i, "Write only the first sentence. Sending can wait."],
+    [/clean|laundry|room|dishes|tidy|organi/i, 'Set a timer and clear just one surface.'],
+    [/gym|workout|run|exercise|walk|lift/i, 'Put on your workout clothes. That counts as starting.'],
+    [/read|chapter|book|article/i, 'Read just the first page.'],
+    [/call|appointment|book|schedule|doctor|dentist/i, 'Find the phone number or booking link and paste it here.'],
+    [/pay|bill|rent|invoice|tuition|loan/i, 'Open the payment page and check the due date and amount.'],
+    [/code|project|build|lab|assignment|homework|hw/i, "Open the project and write down the very next file or question you'll touch."],
+    [/grocer|shop|cook|meal|food/i, 'Write a quick 5-item list.'],
+    [/update .*(phone|laptop|tablet|router|watch|device)|software update/i, 'Plug in your device and open its Settings → Software Update.'],
+    [/password|leak|breach/i, 'Open your password manager or the site and start a password change.'],
+    [/present|slides|deck|pitch/i, 'Write the title of every slide, nothing else.'],
+  ];
+  const firstStep = title => (RULES.find(([re]) => re.test(title)) || [0, 'Open whatever you need for this and work on it for just 2 minutes.'])[1];
+
+  /* ---------- greeting/date ---------- */
+  const now = new Date();
+  const h = now.getHours();
+  const hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const niceDate = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  $('#greeting').textContent = hello;
+  $('#todayDate').textContent = niceDate;
+  $('#phoneDate').textContent = niceDate;
+  $('#year').textContent = now.getFullYear();
+  $('.phone h4').textContent = hello + (h < 12 ? ' ☀️' : h < 18 ? ' 🌤' : ' 🌙');
+
+  /* ---------- tabs ---------- */
+  const tabs = $$('.tab');
+  const showTab = name => {
+    tabs.forEach(t => { const on = t.dataset.tab === name; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; });
+    $$('.panel').forEach(p => { p.hidden = p.id !== 'panel-' + name; });
+    if (name === 'privacy') renderLedger();
+    if (name === 'devices') renderDevices();
+    if (name === 'guard') renderGuard();
+  };
+  tabs.forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+  $('.app-side').addEventListener('keydown', e => {
+    if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    const n = tabs[(i + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    n.focus(); n.click(); e.preventDefault();
+  });
+  $$('[data-goto]').forEach(a => a.addEventListener('click', () => setTimeout(() => showTab(a.dataset.goto), 50)));
+
+  /* ---------- TODAY ---------- */
+  const list = $('#taskList');
+  const addTask = (title, extra = {}) => {
+    title = title.trim(); if (!title) return;
+    state.tasks.push({ id: uid(), title, done: false, step: firstStep(title), showStep: false, created: today, ...extra });
+    save(); renderToday();
+  };
+  $('#addForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#taskInput'); if (!i.value.trim()) { i.focus(); return; } addTask(i.value); i.value = ''; i.focus(); });
+  $$('[data-suggest]').forEach(b => b.addEventListener('click', () => { addTask(b.dataset.suggest); toast('Added. Tap ⚡ for a first step.'); }));
+  $('#clearDone').addEventListener('click', () => { const n = state.tasks.filter(t => t.done).length; state.tasks = state.tasks.filter(t => !t.done); save(); renderToday(); toast(n ? `Cleared ${n} finished task${n > 1 ? 's' : ''}.` : 'Nothing finished yet. You got this.'); });
+
+  const streak = () => {
+    let s = 0; const d = new Date();
+    if (!state.days[dayKey(d)]) d.setDate(d.getDate() - 1);
+    while (state.days[dayKey(d)]) { s++; d.setDate(d.getDate() - 1); }
+    return s;
+  };
+
+  const renderToday = () => {
+    const tasks = state.tasks;
+    const done = tasks.filter(t => t.done).length;
+    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+    const ring = $('#dayRing'); ring.style.setProperty('--p', pct); ring.dataset.label = pct + '%';
+    $('#doneCount').textContent = `${done} / ${tasks.length}`;
+    const s = streak(); $('#streakCount').textContent = `${s} day${s === 1 ? '' : 's'}`;
+    $('#todayTitle').textContent = !tasks.length ? "Let's make today easy" : done === tasks.length ? 'All done. Seriously, nice work.' : `${tasks.length - done} thing${tasks.length - done > 1 ? 's' : ''} left today`;
+    if (!tasks.length) {
+      list.innerHTML = '<li class="empty"><b>Your day is a blank page ✨</b>Type what\'s on your mind above, or tap a suggestion.</li>';
+    } else {
+      list.innerHTML = tasks.map(t => `
+        <li class="task ${t.done ? 'done' : ''}" data-id="${t.id}">
+          <div class="task-top">
+            <button class="check" data-act="toggle" aria-label="${t.done ? 'Mark not done' : 'Mark done'}: ${esc(t.title)}">${t.done ? '✓' : ''}</button>
+            <span class="t-title">${esc(t.title)}</span>
+            ${t.guard ? '<span class="t-tag guard">GUARD</span>' : ''}
+            <div class="t-actions">
+              <button class="icon-btn" data-act="step" aria-label="Show first step" title="First step">⚡</button>
+              <button class="icon-btn" data-act="focus" aria-label="Start a 2-minute timer" title="2-minute start">⏱</button>
+              <button class="icon-btn" data-act="del" aria-label="Delete task" title="Delete">✕</button>
+            </div>
+          </div>
+          ${t.showStep && !t.done ? `<div class="first-step"><span>⚡ <b>First step:</b> ${esc(t.step)}</span><button class="btn btn-aqua" data-act="focus">Start 2 min</button></div>` : ''}
+        </li>`).join('');
+    }
+    renderGuardSummary();
+  };
+
+  list.addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]'); if (!btn) return;
+    const li = btn.closest('.task'); const t = state.tasks.find(x => x.id === li.dataset.id); if (!t) return;
+    const act = btn.dataset.act;
+    if (act === 'toggle') {
+      t.done = !t.done; t.doneOn = t.done ? today : null;
+      state.days[today] = state.tasks.filter(x => x.done && x.doneOn === today).length;
+      if (!state.days[today]) delete state.days[today];
+      if (t.done) { const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2); }
+      if (t.done && t.guardType === 'device' && t.deviceId) { const d = state.devices.find(x => x.id === t.deviceId); if (d) { d.updated = today; toast(`${d.name} marked as updated today.`); } }
+    } else if (act === 'step') { t.showStep = !t.showStep; }
+    else if (act === 'del') { state.tasks = state.tasks.filter(x => x !== t); toast('Task removed.'); }
+    else if (act === 'focus') { openFocus(t); return; }
+    save(); renderToday();
+  });
+
+  /* ---------- 2-minute focus ---------- */
+  const focusEl = $('#focus'); let timerId = null; let focusTask = null; let lastFocus = null;
+  const openFocus = t => {
+    focusTask = t; lastFocus = document.activeElement;
+    $('#focusTitle').textContent = t.title; $('#focusStep').textContent = '⚡ ' + t.step;
+    focusEl.hidden = false; $('#focusDone').focus();
+    const total = 120; let left = total; const tEl = $('#timer'); const txt = $('#timerText');
+    const paint = () => { tEl.style.setProperty('--p', left / total * 100); txt.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`; };
+    paint(); clearInterval(timerId);
+    timerId = setInterval(() => { left--; paint(); if (left <= 0) { clearInterval(timerId); txt.textContent = '🎉'; $('#focusStep').textContent = 'Two minutes done. The hard part is over. Keep going?'; } }, 1000);
+  };
+  const closeFocus = () => { clearInterval(timerId); focusEl.hidden = true; if (lastFocus) lastFocus.focus(); };
+  $('#focusClose').addEventListener('click', closeFocus);
+  $('#focusDone').addEventListener('click', () => { closeFocus(); if (focusTask) { focusTask.started = true; save(); } toast("Nice. You started. That's the hardest part."); });
+  focusEl.addEventListener('click', e => { if (e.target === focusEl) closeFocus(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !focusEl.hidden) closeFocus(); });
+
+  /* ---------- GUARD ---------- */
+  const devStatus = d => {
+    const n = daysSince(d.updated);
+    if (n === null) return { cls: 'warn', label: 'Add last update date', ok: false, n };
+    if (n <= 30) return { cls: 'ok', label: n === 0 ? 'Updated today' : `Updated ${n} day${n > 1 ? 's' : ''} ago`, ok: true, n };
+    if (n <= 60) return { cls: 'warn', label: `Check for updates · ${n} days`, ok: false, n };
+    return { cls: 'bad', label: `Overdue · ${n} days`, ok: false, n };
+  };
+  const guardEval = () => {
+    const pwAge = state.pw.last ? Math.floor((Date.now() - state.pw.last) / DAY) : null;
+    const items = [];
+    items.push(pwAge === null ? { s: 'todo', t: 'Run a private password check' } : pwAge <= 30 ? { s: 'ok', t: `Password checked ${pwAge === 0 ? 'today' : pwAge + ' days ago'}` } : { s: 'bad', t: `Last password check was ${pwAge} days ago` });
+    if (state.pw.last) items.push(state.pw.breached && !state.pw.resolved ? { s: 'bad', t: 'A leaked password still needs changing' } : { s: 'ok', t: 'No unresolved leaked passwords' });
+    if (!state.devices.length) items.push({ s: 'todo', t: 'Add your devices for update reminders' });
+    state.devices.forEach(d => { const st = devStatus(d); items.push({ s: st.ok ? 'ok' : 'bad', t: `${d.name}: ${st.label}` }); });
+    const started = state.pw.last || state.devices.length;
+    let score = null;
+    if (started) {
+      const pwPts = pwAge !== null && pwAge <= 30 ? 30 : 0;
+      const leakPts = state.pw.last ? (state.pw.breached && !state.pw.resolved ? 0 : 30) : 0;
+      const devPts = state.devices.length ? Math.round(40 * state.devices.filter(d => devStatus(d).ok).length / state.devices.length) : 0;
+      score = pwPts + leakPts + devPts;
+    }
+    const issues = [];
+    if (state.pw.breached && !state.pw.resolved) issues.push({ title: 'Change the password that showed up in a breach', guardType: 'pw' });
+    if (pwAge === null || pwAge > 30) issues.push({ title: 'Run a private password breach check', guardType: 'pwcheck' });
+    state.devices.forEach(d => { const st = devStatus(d); if (!st.ok && st.n !== null) issues.push({ title: `Update ${d.name}`, guardType: 'device', deviceId: d.id }); });
+    return { items, score, issues };
+  };
+
+  const paintRing = (el, score) => { el.style.setProperty('--p', score ?? 0); el.dataset.label = score === null ? '—' : score; };
+  const renderGuardSummary = () => {
+    const g = guardEval();
+    paintRing($('#guardRingMini'), g.score);
+    $('#guardMini').textContent = g.score === null ? 'Not checked' : g.score >= 80 ? `${g.score} · Looking good` : `${g.score} · Needs attention`;
+    const real = g.issues.filter(i => i.guardType !== 'pwcheck' || state.pw.last); // don't nag first-time visitors
+    const badge = $('#guardBadge'); badge.hidden = !real.length; badge.textContent = real.length;
+    const alert = $('#guardAlert');
+    const already = state.tasks.filter(t => t.guard && !t.done).map(t => t.title);
+    const newIssues = real.filter(i => !already.includes(i.title));
+    alert.hidden = !newIssues.length;
+    if (newIssues.length) {
+      $('#guardAlertTitle').textContent = `Today's Guard check found ${newIssues.length} thing${newIssues.length > 1 ? 's' : ''}`;
+      $('#guardAlertText').textContent = newIssues.map(i => i.title).join(' · ');
+    }
+  };
+  $('#addGuardTasks').addEventListener('click', () => {
+    const already = state.tasks.filter(t => t.guard && !t.done).map(t => t.title);
+    guardEval().issues.filter(i => (i.guardType !== 'pwcheck' || state.pw.last) && !already.includes(i.title))
+      .forEach(i => addTask(i.title, { guard: true, guardType: i.guardType, deviceId: i.deviceId }));
+    toast('Added to today. Tap ⚡ to see how.');
+  });
+
+  const renderGuard = () => {
+    const g = guardEval();
+    paintRing($('#guardRing'), g.score);
+    $('#guardChecklist').innerHTML = g.items.map(i => `<li class="${i.s === 'ok' ? 'ok' : i.s === 'bad' ? 'bad' : ''}"><i>${i.s === 'ok' ? '✓' : i.s === 'bad' ? '!' : '•'}</i>${esc(i.t)}</li>`).join('');
+  };
+
+  /* SHA-1: Web Crypto when available, tiny pure-JS fallback otherwise (e.g. opened from a file) */
+  const sha1Fallback = msg => {
+    const rotl = (n, s) => (n << s) | (n >>> (32 - s));
+    const bytes = new TextEncoder().encode(msg); const len = bytes.length;
+    const words = []; for (let i = 0; i < len; i++) words[i >> 2] |= bytes[i] << (24 - (i % 4) * 8);
+    words[len >> 2] |= 0x80 << (24 - (len % 4) * 8); words[(((len + 8) >> 6) << 4) + 15] = len * 8;
+    let [a, b, c, d, e] = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0]; const w = new Array(80);
+    for (let i = 0; i < words.length; i += 16) {
+      let [A, B, C, D, E] = [a, b, c, d, e];
+      for (let j = 0; j < 80; j++) {
+        w[j] = j < 16 ? (words[i + j] | 0) : rotl(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
+        const f = j < 20 ? (B & C) | (~B & D) : j < 40 ? B ^ C ^ D : j < 60 ? (B & C) | (B & D) | (C & D) : B ^ C ^ D;
+        const k = j < 20 ? 0x5A827999 : j < 40 ? 0x6ED9EBA1 : j < 60 ? 0x8F1BBCDC : 0xCA62C1D6;
+        const tmp = (rotl(A, 5) + f + E + k + w[j]) | 0; E = D; D = C; C = rotl(B, 30); B = A; A = tmp;
+      }
+      a = (a + A) | 0; b = (b + B) | 0; c = (c + C) | 0; d = (d + D) | 0; e = (e + E) | 0;
+    }
+    return [a, b, c, d, e].map(x => (x >>> 0).toString(16).padStart(8, '0')).join('').toUpperCase();
+  };
+  const sha1 = async msg => {
+    if (window.crypto?.subtle) {
+      const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(msg));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+    return sha1Fallback(msg);
+  };
+
+  const pwInput = $('#pwInput'); const pwRes = $('#pwResult');
+  $('#pwEye').addEventListener('click', () => { const show = pwInput.type === 'password'; pwInput.type = show ? 'text' : 'password'; $('#pwEye').setAttribute('aria-label', show ? 'Hide password' : 'Show password'); });
+  const showResult = (cls, html) => { pwRes.className = 'result show ' + cls; pwRes.innerHTML = html; };
+  $('#pwForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const data = new FormData(e.target);
-    const message = `ClinicGuard demo inquiry\nName: ${data.get('name')}\nEmail: ${data.get('email')}\nRole: ${data.get('role')}\nMessage: ${data.get('message') || '(not provided)'}`;
-    openModal(`<div class="kicker">YOUR MESSAGE PREVIEW</div><h2>You're all set to reach out.</h2><p>Because this is a standalone concept site, the form is not connected to a sales inbox. Your data has not been sent or saved.</p><div class="modal-result" style="white-space:pre-wrap">${escapeHtml(message)}</div><button class="btn btn-dark" id="copy-inquiry">Copy message to clipboard ↗</button>`);
-    document.querySelector('#copy-inquiry').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(message); toast('Inquiry copied.'); }
-      catch { toast('Clipboard unavailable here; select and copy the message manually.'); }
+    const pw = pwInput.value; if (!pw) { pwInput.focus(); return; }
+    const btn = $('#pwBtn'); btn.disabled = true; btn.textContent = 'Checking…';
+    try {
+      const hash = await sha1(pw);
+      const prefix = hash.slice(0, 5), suffix = hash.slice(5);
+      const res = await fetch('https://api.pwnedpasswords.com/range/' + prefix);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const body = await res.text();
+      const lines = body.split('\n');
+      const hit = lines.find(l => l.split(':')[0].trim() === suffix);
+      const count = hit ? parseInt(hit.split(':')[1], 10) : 0;
+      const trace = `<div class="leak-trace">sent → <span class="sent">${prefix}</span><br>kept on this device → <span class="kept">${suffix.slice(0, 12)}…</span><br>matches returned → ${lines.length} · compared locally</div>`;
+      state.pw.last = Date.now(); state.pw.lastPrefix = prefix;
+      if (count) {
+        state.pw.breached = true; state.pw.resolved = false;
+        showResult('bad', `<b>⚠️ This password has shown up ${count.toLocaleString()} time${count > 1 ? 's' : ''} in known data breaches.</b><br>Attackers try leaked passwords first. Change it anywhere you use it, and don't reuse it.<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-soft" id="pwToTask">Add "change it" to today</button><button class="btn btn-soft" id="pwResolved">I changed it ✓</button></div>${trace}`);
+      } else {
+        if (state.pw.breached && !state.pw.resolved) { /* keep earlier unresolved finding */ } else { state.pw.breached = false; state.pw.resolved = true; }
+        showResult('good', `<b>✓ Good news: this password wasn't found in known breaches.</b><br>That doesn't make it unbreakable. Long and unique still wins.${trace}`);
+      }
+      save(); renderGuard(); renderToday();
+    } catch (err) {
+      showResult('info', "<b>Couldn't reach the breach database.</b><br>Check your connection and try again. Nothing was saved.");
+    } finally {
+      pwInput.value = ''; pwInput.type = 'password'; btn.disabled = false; btn.textContent = 'Check privately';
+    }
+  });
+  pwRes.addEventListener('click', e => {
+    if (e.target.id === 'pwToTask') { addTask('Change the password that showed up in a breach', { guard: true, guardType: 'pw' }); toast('Added to today.'); }
+    if (e.target.id === 'pwResolved') { state.pw.resolved = true; state.tasks.filter(t => t.guardType === 'pw' && !t.done).forEach(t => { t.done = true; t.doneOn = today; }); save(); renderGuard(); renderToday(); toast('Nice. Guard score updated.'); e.target.disabled = true; }
+  });
+
+  /* ---------- DEVICES ---------- */
+  const ICON = { phone: '📱', laptop: '💻', tablet: '📲', router: '📶', watch: '⌚', other: '🔌' };
+  const HOWTO = { phone: 'Settings → General → Software Update (iPhone) or Settings → System → Software update (Android)', laptop: 'Mac: System Settings → General → Software Update · Windows: Settings → Windows Update', tablet: 'Settings → Software Update', router: "Open your router's app or admin page and look for Firmware update", watch: 'Update from the companion app on your phone', other: "Check the maker's app or website for updates" };
+  const detectDevice = () => {
+    const ua = navigator.userAgent;
+    let os = 'your device', type = 'laptop';
+    if (/iPhone/.test(ua)) { os = 'iPhone'; type = 'phone'; }
+    else if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) { os = 'iPad'; type = 'tablet'; }
+    else if (/Android/.test(ua)) { os = /Mobile/.test(ua) ? 'Android phone' : 'Android tablet'; type = /Mobile/.test(ua) ? 'phone' : 'tablet'; }
+    else if (/Mac OS X|Macintosh/.test(ua)) os = 'Mac';
+    else if (/Windows/.test(ua)) os = 'Windows PC';
+    else if (/CrOS/.test(ua)) os = 'Chromebook';
+    else if (/Linux/.test(ua)) os = 'Linux computer';
+    const B = [['Edge', /Edg\/(\d+)/], ['Opera', /OPR\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]];
+    let b = ['your browser', '']; for (const [n, re] of B) { const m = re.exec(ua); if (m) { b = [n, m[1]]; break; } }
+    return { os, type, browser: b[0] + (b[1] ? ' ' + b[1] : '') };
+  };
+  const det = detectDevice();
+  const renderDetect = () => {
+    $('#detect').innerHTML = `<span>🔎 Looks like you're on a <b>${esc(det.os)}</b> using <b>${esc(det.browser)}</b>. We can't look inside your device (that's a good thing), so tell us when it was last updated.</span><button class="btn btn-soft" id="useDetected">Use this device</button>`;
+    $('#useDetected').addEventListener('click', () => { $('#devType').value = det.type; $('#devName').value = 'My ' + det.os; $('#devDate').focus(); toast('Now pick the date it was last updated.'); });
+  };
+  $('#devDate').max = today;
+  $('#devForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('#devName').value.trim(); if (!name) { $('#devName').focus(); return; }
+    const updated = $('#devDate').value || null;
+    state.devices.push({ id: uid(), type: $('#devType').value, name, updated });
+    save(); $('#devName').value = ''; $('#devDate').value = ''; renderDevices(); renderToday();
+    toast(updated ? `${name} added.` : `${name} added. Add its last update date for reminders.`);
+  });
+  const renderDevices = () => {
+    renderDetect();
+    const el = $('#devList');
+    if (!state.devices.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>No devices yet</b>Add your phone, laptop and Wi-Fi router. Those three cover most of your risk.</div>'; return; }
+    el.innerHTML = state.devices.map(d => { const st = devStatus(d); return `
+      <div class="dev" data-id="${d.id}" data-tilt-sm>
+        <div class="dev-ic">${ICON[d.type] || '🔌'}</div><h5>${esc(d.name)}</h5>
+        <small>${d.updated ? 'Last updated ' + new Date(d.updated + 'T12:00:00').toLocaleDateString() : 'Last update unknown'}</small><br>
+        <span class="pill ${st.cls}">${st.label}</span>
+        ${!st.ok ? `<p style="font-size:12px;color:#7a86a0;margin:0 0 10px;line-height:1.5">How: ${esc(HOWTO[d.type])}</p>` : ''}
+        <div class="dev-actions"><button class="btn btn-soft" data-dact="updated">Updated today ✓</button><button class="icon-btn" data-dact="del" aria-label="Remove ${esc(d.name)}">✕</button></div>
+      </div>`; }).join('');
+  };
+  $('#devList').addEventListener('click', e => {
+    const b = e.target.closest('[data-dact]'); if (!b) return;
+    const card = b.closest('.dev'); const d = state.devices.find(x => x.id === card.dataset.id); if (!d) return;
+    if (b.dataset.dact === 'updated') { d.updated = today; state.tasks.filter(t => t.deviceId === d.id && !t.done).forEach(t => { t.done = true; t.doneOn = today; }); toast(`${d.name} is up to date. Nice.`); const r = b.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top); }
+    else { state.devices = state.devices.filter(x => x !== d); toast('Device removed.'); }
+    save(); renderDevices(); renderToday();
+  });
+
+  /* ---------- MY DATA ---------- */
+  const renderLedger = () => {
+    const bytes = new Blob([localStorage.getItem(KEY) || '']).size;
+    $('#ledger').innerHTML = [
+      ['Your tasks & first steps', '<span class="tag-local">This browser only</span>', `${state.tasks.length} task${state.tasks.length === 1 ? '' : 's'}`],
+      ['Your devices & update dates', '<span class="tag-local">This browser only</span>', `${state.devices.length} device${state.devices.length === 1 ? '' : 's'}`],
+      ['Streak history', '<span class="tag-local">This browser only</span>', `${Object.keys(state.days).length} day${Object.keys(state.days).length === 1 ? '' : 's'} logged`],
+      ['Passwords you check', '<b>Never stored anywhere</b>', 'Cleared from the screen right after checking'],
+      ['Sent over the internet', '<span class="tag-out">Have I Been Pwned (5 characters)</span>', state.pw.lastPrefix ? `Last sent: <code>${esc(state.pw.lastPrefix)}</code> on ${new Date(state.pw.last).toLocaleDateString()}` : 'Nothing sent yet'],
+      ['Total saved on this device', '<span class="tag-local">localStorage</span>', `${bytes.toLocaleString()} bytes`],
+    ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+  };
+  $('#exportBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({ app: 'ClinicGuard Personal', exported: new Date().toISOString(), ...state }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `clinicguard-personal-${today}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Exported. That file is your backup.');
+  });
+  let wipeArmed = false;
+  $('#wipeBtn').addEventListener('click', e => {
+    if (!wipeArmed) { wipeArmed = true; e.currentTarget.textContent = '⚠️ Tap again to erase everything'; setTimeout(() => { wipeArmed = false; $('#wipeBtn').textContent = '🗑 Erase everything'; }, 4000); return; }
+    state = fresh(); try { localStorage.removeItem(KEY); } catch {} wipeArmed = false;
+    $('#wipeBtn').textContent = '🗑 Erase everything'; renderLedger(); renderToday(); toast('Everything erased from this device.');
+  });
+
+  $('#waitlistBtn').addEventListener('click', () => toast('Early-access signup opens soon. Until then, the free version is all yours.'));
+
+  /* ---------- nav ---------- */
+  const header = $('.site-header'); const bar = $('.scroll-progress');
+  const toggle = $('.menu-toggle'); const menu = $('#mobile-menu');
+  toggle.addEventListener('click', () => { const open = menu.hidden; menu.hidden = !open; toggle.setAttribute('aria-expanded', open); });
+  $$('#mobile-menu a').forEach(a => a.addEventListener('click', () => { menu.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }));
+
+  /* ---------- scroll interactions ---------- */
+  const stage = $('#stage3d'); const cube = $('#cube');
+  let mx = 0, my = 0;
+  const onScroll = () => {
+    const y = window.scrollY; const max = document.documentElement.scrollHeight - innerHeight;
+    bar.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
+    header.classList.toggle('scrolled', y > 10);
+    if (!reduceMotion && y < innerHeight * 1.2) stage.style.transform = `translateY(${y * 0.18}px) rotateY(${mx * 10 - y * 0.012}deg) rotateX(${-my * 8 + y * 0.01}deg)`;
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  if (!reduceMotion) $('.hero').addEventListener('mousemove', e => { const r = e.currentTarget.getBoundingClientRect(); mx = (e.clientX - r.left) / r.width - .5; my = (e.clientY - r.top) / r.height - .5; onScroll(); });
+
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } }), { threshold: .12 });
+  $$('.reveal').forEach(el => io.observe(el));
+
+  const stepIO = new IntersectionObserver(es => es.forEach(en => {
+    if (!en.isIntersecting) return;
+    const i = +en.target.dataset.step;
+    $$('.step').forEach(s => s.classList.toggle('active', s === en.target));
+    cube.style.transform = `rotateY(${-90 * i}deg) rotateX(${i === 1 ? 6 : -4}deg)`;
+  }), { rootMargin: '-45% 0px -45% 0px' });
+  $$('.step').forEach(s => stepIO.observe(s));
+
+  const shellIO = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove('pre'); shellIO.disconnect(); } }), { threshold: .15 });
+  shellIO.observe($('#appShell'));
+
+  // 3D tilt cards
+  if (!reduceMotion && matchMedia('(hover:hover)').matches) {
+    $$('[data-tilt]').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.transform = `rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 14}deg) translateZ(10px)`;
+        card.style.setProperty('--mx', x * 100 + '%'); card.style.setProperty('--my', y * 100 + '%');
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
     });
-  } else if (e.target.id === 'device-form') {
-    e.preventDefault();
-    const q = e.target.querySelector('input').value.trim();
-    const result = document.querySelector('#tool-result');
-    result.innerHTML = `<span class="demo-watermark">DEMO RESULTS — NOT LIVE DATA</span><br><strong>Device review for “${escapeHtml(q)}”</strong><p>This tool's advisory feed is not connected yet. No real safety or security conclusion can be drawn from this search.</p><p><strong>Where to verify:</strong> Search the FDA's official <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfres/res.cfm" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">medical device recalls database</a> and check the device manufacturer's official notices.</p><p>For implanted or life-supporting devices, speak with your healthcare professional before making changes.</p>`;
-    result.hidden = false;
-  } else if (e.target.id === 'breach-form') {
-    e.preventDefault();
-    const q = e.target.querySelector('input').value.trim();
-    const result = document.querySelector('#tool-result');
-    result.innerHTML = `<span class="demo-watermark">DEMO RESULTS — NOT LIVE DATA</span><br><strong>Provider search for “${escapeHtml(q)}”</strong><p>Live breach record matching is not connected yet. We cannot confirm any breach affecting this organization or your personal information.</p><p><strong>Official source:</strong> View the <a href="https://ocrportal.hhs.gov/ocr/breach/breach_report.jsf" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">HHS reported breaches portal</a> to search publicly reported incidents.</p><p>Even when a provider is listed, that does not establish that your personal records were exposed.</p>`;
-    result.hidden = false;
   }
-});
-const freeTools={device:`<div class="kicker">FREE TOOL CONCEPT</div><h2>Medical Device Check</h2><p>Search by medical device manufacturer or model to see how a product-safety lookup will work.</p><form id="device-form"><label for="tool-query">Manufacturer or model</label><input id="tool-query" type="text" required minlength="2" maxlength="100" placeholder="e.g., CPAP model or glucose monitor"/><button class="btn btn-dark" type="submit">Review my device ↗</button></form><div id="tool-result" class="modal-result" hidden></div><div class="form-note" style="margin-top:12px">No personal medical information is required. This is not a real-time monitoring service.</div>`,breach:`<div class="kicker">FREE TOOL CONCEPT</div><h2>Provider Breach Lookup</h2><p>Search a healthcare provider or insurer to see how the public-record lookup experience will work.</p><form id="breach-form"><label for="tool-query">Healthcare organization</label><input id="tool-query" type="text" required minlength="2" maxlength="100" placeholder="e.g., a medical practice or insurer"/><button class="btn btn-dark" type="submit">Look up provider ↗</button></form><div id="tool-result" class="modal-result" hidden></div><div class="form-note" style="margin-top:12px">No connection to HHS data is currently configured. A public report does not confirm individual exposure.</div>`};
-document.querySelectorAll('[data-open-tool]').forEach(b=>b.addEventListener('click',()=>openModal(freeTools[b.dataset.openTool])));
-const info={privacy:`<div class="kicker">PRIVACY OVERVIEW</div><h2>Privacy by design, not by slogan.</h2><p>In this standalone concept, forms are not sent to a server. The dashboard runs with synthetic data and search examples do not save your inputs. A real release will need a complete privacy notice, data inventory, secure hosting and appropriate legal review before accepting customer data.</p>`,disclaimer:`<div class="kicker">IMPORTANT DISCLAIMER</div><h2>What ClinicGuard does — and doesn't — verify</h2><p>This is a product concept and interactive demonstration. It does not actively scan networks, verify vulnerabilities, certify HIPAA compliance, diagnose medical issues, or guarantee device safety. All sample assets and statistics are fictional. Consult original government and manufacturer sources for actual advisories.</p>`,security:`<div class="kicker">SECURITY PRINCIPLES</div><h2>Built to earn trust.</h2><p>Our intended product architecture prioritizes minimizing data collection, isolating organization workspaces, strong authentication, verified advisory sources, and human-reviewed decisions. The current website is a demonstration, not an audited security platform or a deployed clinical monitoring service.</p>`};document.querySelectorAll('[data-info]').forEach(b=>b.addEventListener('click',()=>openModal(info[b.dataset.info])));
-const mobileToggle=document.querySelector('.mobile-menu-toggle'),mobileMenu=document.querySelector('#mobile-menu');mobileToggle.addEventListener('click',()=>{const open=mobileMenu.hidden;mobileMenu.hidden=!open;mobileToggle.setAttribute('aria-expanded',String(open));mobileToggle.setAttribute('aria-label',open?'Close menu':'Open menu')});mobileMenu.querySelectorAll('a,button').forEach(el=>el.addEventListener('click',()=>{mobileMenu.hidden=true;mobileToggle.setAttribute('aria-expanded','false')}));
-window.addEventListener('scroll',()=>document.querySelector('.site-header').classList.toggle('scrolled',window.scrollY>20),{passive:true});
-const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');io.unobserve(entry.target)}}),{threshold:.08});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-document.querySelector('#copyright-year').textContent=String(new Date().getFullYear());switchTab('overview');
+
+  /* ---------- hero orb: 3D point sphere ---------- */
+  const cv = $('#orb'); const ctx = cv.getContext('2d');
+  const N = innerWidth < 700 ? 420 : 760; const pts = [];
+  for (let i = 0; i < N; i++) { const y = 1 - (i / (N - 1)) * 2; const r = Math.sqrt(1 - y * y); const th = Math.PI * (3 - Math.sqrt(5)) * i; pts.push([Math.cos(th) * r, y, Math.sin(th) * r]); }
+  let rot = 0, visible = true, raf;
+  const size = () => { const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  size(); addEventListener('resize', size);
+  const draw = () => {
+    const w = cv.clientWidth, hgt = cv.clientHeight; ctx.clearRect(0, 0, w, hgt);
+    const R = Math.min(w, hgt) * .36, cx = w * .55, cy = hgt * .5;
+    const ay = rot + mx * .8, ax = .35 + my * .5;
+    const sy = Math.sin(ay), cyy = Math.cos(ay), sx = Math.sin(ax), cxx = Math.cos(ax);
+    for (const [x, y, z] of pts) {
+      let X = x * cyy - z * sy, Z = x * sy + z * cyy; let Y = y * cxx - Z * sx; Z = y * sx + Z * cxx;
+      const p = 2.6 / (2.6 - Z); const px = cx + X * R * p, py = cy + Y * R * p; const d = (Z + 1) / 2;
+      ctx.fillStyle = `rgba(${Math.round(72 + (150 - 72) * (1 - d))},${Math.round(191 - 60 * (1 - d))},${Math.round(206 + 20 * (1 - d))},${.12 + d * .55})`;
+      ctx.beginPath(); ctx.arc(px, py, .6 + d * 1.9, 0, Math.PI * 2); ctx.fill();
+    }
+  };
+  const loop = () => { rot += .0026; draw(); if (visible) raf = requestAnimationFrame(loop); };
+  if (reduceMotion) draw(); else {
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; cancelAnimationFrame(raf); if (visible) loop(); }).observe(cv);
+  }
+
+  /* ---------- go ---------- */
+  renderToday(); renderGuard(); onScroll();
+})();
