@@ -400,7 +400,28 @@
     $('#wipeBtn').textContent = '🗑 Erase everything'; renderLedger(); renderToday(); toast('Everything erased from this device.');
   });
 
-  $('#waitlistBtn').addEventListener('click', () => toast('Early-access signup opens soon. Until then, the free version is all yours.'));
+  /* ---------- early-access signup (Formspree) ---------- */
+  const earlyForm = $('#earlyForm');
+  $$('[data-vault-interest]').forEach(a => a.addEventListener('click', () => { $('#earlyVault').checked = true; }));
+  earlyForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#earlyEmail').value.trim(), msg = $('#earlyMsg'), btn = $('#earlyBtn');
+    msg.className = 'early-msg';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) {
+      msg.textContent = 'Please enter a valid email address.'; msg.classList.add('err'); $('#earlyEmail').focus(); return;
+    }
+    if (earlyForm.action.includes('REPLACE_ME')) {
+      msg.textContent = 'Signups are being connected. Please check back soon.'; msg.classList.add('err'); return;
+    }
+    btn.disabled = true; btn.textContent = 'Joining…';
+    try {
+      const r = await fetch(earlyForm.action, { method: 'POST', body: new FormData(earlyForm), headers: { Accept: 'application/json' } });
+      if (!r.ok) throw new Error();
+      earlyForm.reset(); msg.textContent = "You're on the list! We'll email you when early access opens."; msg.classList.add('ok');
+      { const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top); }
+    } catch { msg.textContent = "Couldn't sign you up right now. Please try again in a minute."; msg.classList.add('err'); }
+    finally { btn.disabled = false; btn.textContent = 'Join the list'; }
+  });
 
 
   /* ---------- ✨ AI PLANNER (Plus AI preview) ---------- */
