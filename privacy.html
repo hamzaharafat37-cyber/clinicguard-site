@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy · Comeback</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>.doc{max-width:720px;margin:0 auto;padding:40px 20px 80px}.doc h1{font-size:36px;margin:8px 0 6px}.doc h2{font-size:20px;margin:28px 0 8px}.doc p,.doc li{color:#4b5677}.doc a{color:#128f99;font-weight:700}</style>
+</head>
+<body>
+  <main class="doc">
+    <a href="./" class="kicker">← Comeback</a>
+    <h1>Privacy</h1>
+    <p>Last updated November 10, 2026. Comeback (formerly ClinicGuard Personal) is an early-stage student project. This page says plainly what we keep and where.</p>
+
+    <h2>Stored only on your device</h2>
+    <ul>
+      <li>Your tasks, steps, session times and "comeback" history, in your browser's local storage.</li>
+      <li>Clearing your browser data erases them. Use <b>Export my data</b> on the Account page to keep a copy.</li>
+    </ul>
+
+    <h2>Stored on our servers (Neon database, hosted with Vercel)</h2>
+    <ul>
+      <li><b>If you create an account:</b> your email, a hashed password (scrypt; we can't read it), your plan, the date and count of today's AI actions, and login sessions.</li>
+      <li><b>Usage counts:</b> event names like "session started" or "task finished", a random id stored in your browser, your account id if logged in, and the time. <b>Never</b> your task text, titles or anything you type.</li>
+      <li><b>AI usage:</b> how many tokens each AI request used, for cost tracking. Not the content.</li>
+      <li>Our hosting provider may keep standard request logs (such as IP address) for security.</li>
+    </ul>
+
+    <h2>Sent to third parties</h2>
+    <ul>
+      <li><b>Anthropic (Claude):</b> only when you tap an AI button, we send that task or step text to get a response. We don't store it.</li>
+      <li><b>Stripe:</b> handles payments. We never see your card number. We store which checkout session paid for your account.</li>
+    </ul>
+
+    <h2>What we don't do</h2>
+    <ul>
+      <li>We don't sell your data or show ads.</li>
+      <li>We can't see, block or monitor other apps or websites. During a session, Comeback only notices that you left its own tab.</li>
+    </ul>
+
+    <h2>Your choices</h2>
+    <ul>
+      <li>Use Comeback without an account.</li>
+      <li>Export or erase your device data any time (Account page).</li>
+      <li>Delete your account permanently from the Account page. Usage counts linked to it are kept only in anonymous form.</li>
+    </ul>
+
+    <p>Questions: contact the founder through the Penn State course or the GitHub repository.</p>
+  </main>
+</body>
+</html>

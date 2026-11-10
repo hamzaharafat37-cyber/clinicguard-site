@@ -25,6 +25,20 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ user: null });
     }
 
+    if (action === 'delete') {
+      const user = await L.currentUser(req);
+      if (!user) return res.status(401).json({ error: 'Log in first.' });
+      if (user.email === L.DEMO_EMAIL) return res.status(403).json({ error: 'The demo account can\'t be deleted.' });
+      const pw = String(L.body(req).password || '');
+      const rows = await L.q('SELECT password_hash FROM users WHERE id = $1', [user.id]);
+      if (!rows.length || !L.verifyPassword(pw, rows[0].password_hash)) return res.status(401).json({ error: 'Wrong password.' });
+      await L.q('UPDATE events SET user_id = NULL WHERE user_id = $1', [user.id]);
+      await L.q('UPDATE ai_usage SET user_id = NULL WHERE user_id = $1', [user.id]);
+      await L.q('DELETE FROM users WHERE id = $1', [user.id]); // sessions are removed by ON DELETE CASCADE
+      await L.destroySession(req, res);
+      return res.status(200).json({ user: null, deleted: true });
+    }
+
     if (action === 'signup' || action === 'login') {
       if (L.limited(`auth:${L.clientIp(req)}`, 20, 10 * 60 * 1000)) {
         return res.status(429).json({ error: 'Too many attempts. Wait a few minutes and try again.' });

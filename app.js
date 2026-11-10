@@ -1,482 +1,393 @@
-/* ClinicGuard Personal — everything runs in the browser. Data lives in localStorage only. */
+/* Comeback: start what you're avoiding, come back when you drift.
+   Tasks and sessions live in this browser (localStorage). AI calls go through /api/step (server holds the key). */
 (() => {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const KEY = 'clinicguard-personal:v1';
-  const DAY = 86400000;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const MIN = 60000, DAY = 86400000;
 
-  /* ---------- storage ---------- */
-  const fresh = () => ({ tasks: [], devices: [], days: {}, pw: { last: null, lastPrefix: null, breached: false, resolved: true }, ai: { count: 0, last: null, lastChars: 0, consent: false }, lastPlan: null });
+  /* ---------- state ---------- */
+  const KEY = 'comeback:v1';
+  const fresh = () => ({ v: 1, tasks: [], selectedId: null, session: null, anonId: uid(), aiConsent: false, recoveries: [], dismissedResume: null });
   let state;
   try { state = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { state = fresh(); }
-  state.ai = Object.assign(fresh().ai, state.ai || {});
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage unavailable: app still works for this session */ } };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage full or blocked */ } };
 
-  const uid = () => Math.random().toString(36).slice(2, 10);
-  const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const daysSince = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / DAY) : null;
-
-  // New day: drop tasks completed on previous days, carry unfinished ones forward
-  const today = dayKey();
-  state.tasks = state.tasks.filter(t => !(t.done && t.doneOn && t.doneOn !== today));
-  save();
-
-  /* ---------- toast + confetti ---------- */
+  /* ---------- tiny helpers ---------- */
   const toastEl = $('#toast'); let toastT;
   const toast = msg => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 3200); };
-  const confetti = (x, y) => {
-    if (reduceMotion) return;
-    const colors = ['#48bfce', '#b5a1e8', '#567cbd', '#7de3ea', '#9687d4'];
-    for (let i = 0; i < 18; i++) {
-      const c = document.createElement('i'); c.className = 'confetti';
-      c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.background = colors[i % colors.length];
-      const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 80;
-      c.style.setProperty('--dx', Math.cos(a) * d + 'px'); c.style.setProperty('--dy', Math.sin(a) * d - 40 + 'px');
-      document.body.appendChild(c); setTimeout(() => c.remove(), 1000);
-    }
+  const track = name => {
+    try { fetch('/api/event', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, anonId: state.anonId }) }).catch(() => {}); } catch { /* never break the app */ }
   };
-
-  /* ---------- first-step engine (offline rules, no AI, nothing sent) ---------- */
-  const RULES = [
-    [/essay|paper|report|write|draft|thesis|blog/i, 'Open a blank doc and write just the title and 3 bullet ideas.'],
-    [/stud|exam|quiz|test|midterm|final|review/i, "Open your notes and pick the ONE topic you're least sure about."],
-    [/apply|application|internship|job|resume|cv|cover letter/i, 'Open the posting and copy its 3 key requirements into a note.'],
-    [/email|reply|message|text|dm|respond/i, "Write only the first sentence. Sending can wait."],
-    [/clean|laundry|room|dishes|tidy|organi/i, 'Set a timer and clear just one surface.'],
-    [/gym|workout|run|exercise|walk|lift/i, 'Put on your workout clothes. That counts as starting.'],
-    [/read|chapter|book|article/i, 'Read just the first page.'],
-    [/call|appointment|book|schedule|doctor|dentist/i, 'Find the phone number or booking link and paste it here.'],
-    [/pay|bill|rent|invoice|tuition|loan/i, 'Open the payment page and check the due date and amount.'],
-    [/code|project|build|lab|assignment|homework|hw/i, "Open the project and write down the very next file or question you'll touch."],
-    [/grocer|shop|cook|meal|food/i, 'Write a quick 5-item list.'],
-    [/update .*(phone|laptop|tablet|router|watch|device)|software update/i, 'Plug in your device and open its Settings → Software Update.'],
-    [/password|leak|breach/i, 'Open your password manager or the site and start a password change.'],
-    [/present|slides|deck|pitch/i, 'Write the title of every slide, nothing else.'],
-  ];
-  const firstStep = title => (RULES.find(([re]) => re.test(title)) || [0, 'Open whatever you need for this and work on it for just 2 minutes.'])[1];
-
-  /* ---------- greeting/date ---------- */
-  const now = new Date();
-  const h = now.getHours();
-  const hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  const niceDate = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  $('#greeting').textContent = hello;
-  $('#todayDate').textContent = niceDate;
-  $('#phoneDate').textContent = niceDate;
-  $('#year').textContent = now.getFullYear();
-  $('.phone h4').textContent = hello + (h < 12 ? ' ☀️' : h < 18 ? ' 🌤' : ' 🌙');
-
-  /* ---------- tabs ---------- */
-  const tabs = $$('.tab');
-  const showTab = name => {
-    tabs.forEach(t => { const on = t.dataset.tab === name; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; });
-    $$('.panel', $('#appShell')).forEach(p => { p.hidden = p.id !== 'panel-' + name; });
-    if (name === 'privacy') renderLedger();
-    if (name === 'devices') renderDevices();
-    if (name === 'guard') renderGuard();
-  };
-  tabs.forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
-  $('.app-side').addEventListener('keydown', e => {
-    if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-    const i = tabs.indexOf(document.activeElement); if (i < 0) return;
-    const n = tabs[(i + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
-    n.focus(); n.click(); e.preventDefault();
-  });
-  $$('[data-goto]').forEach(a => a.addEventListener('click', () => setTimeout(() => showTab(a.dataset.goto), 50)));
-
-  /* ---------- router: Home is one scrolling page; "Plan your day" (#/app) and "AI Planner" (#/ai) are their own tabs ---------- */
-  const VIEWS = ['home', 'app', 'ai', 'account'];
-  const TITLES = { home: 'Plan your day. Guard your life.', app: 'Plan your day', ai: 'AI Planner', account: 'Your account' };
-  const shell = $('#appShell');
-  let current = null;
-  const route = () => {
-    const h = location.hash;
-    const isRoute = h.startsWith('#/');
-    let name = isRoute ? h.slice(2) : 'home';
-    if (!VIEWS.includes(name)) name = 'home';
-    const changed = name !== current;
-    current = name;
-    if (changed) {
-      $$('.view').forEach(v => { v.hidden = v.dataset.view !== name; });
-      $$('[data-nav]').forEach(a => a.dataset.nav === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
-      document.title = `${TITLES[name]} · ClinicGuard Personal`;
-      // the same live app is shown on the homepage and in its own tab: move it, don't copy it
-      const slot = name === 'app' ? $('#appSlotTab') : $('#appSlotHome');
-      if (shell.parentElement !== slot) slot.appendChild(shell);
-      if (name === 'app') shell.classList.remove('pre');
-      if (name === 'ai') renderPlan();
-      if (name === 'home') requestAnimationFrame(() => { size(); onScroll(); });
-      if (isRoute || !h) window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-    const menu = $('#mobile-menu'); if (menu) menu.hidden = true;
-    if (!isRoute && h.length > 1) { const t = document.getElementById(h.slice(1)); if (t) requestAnimationFrame(() => t.scrollIntoView({ behavior: changed || reduceMotion ? 'auto' : 'smooth' })); }
-  };
-  addEventListener('hashchange', route);
-  document.addEventListener('click', e => {
-    const a = e.target.closest('[data-scroll]'); if (!a) return;
-    e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if (t) t.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
-  });
-
-  /* ---------- TODAY ---------- */
-  const list = $('#taskList');
-  const addTask = (title, extra = {}) => {
-    title = title.trim(); if (!title) return;
-    state.tasks.push({ id: uid(), title, done: false, step: firstStep(title), showStep: false, created: today, ...extra });
-    save(); renderToday();
-  };
-  $('#addForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#taskInput'); if (!i.value.trim()) { i.focus(); return; } addTask(i.value); i.value = ''; i.focus(); });
-  $$('[data-suggest]').forEach(b => b.addEventListener('click', () => { addTask(b.dataset.suggest); toast('Added. Tap ⚡ for a first step.'); }));
-  $('#clearDone').addEventListener('click', () => { const n = state.tasks.filter(t => t.done).length; state.tasks = state.tasks.filter(t => !t.done); save(); renderToday(); toast(n ? `Cleared ${n} finished task${n > 1 ? 's' : ''}.` : 'Nothing finished yet. You got this.'); });
-
-  const streak = () => {
-    let s = 0; const d = new Date();
-    if (!state.days[dayKey(d)]) d.setDate(d.getDate() - 1);
-    while (state.days[dayKey(d)]) { s++; d.setDate(d.getDate() - 1); }
-    return s;
-  };
-
-  const renderToday = () => {
-    const tasks = state.tasks;
-    const done = tasks.filter(t => t.done).length;
-    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
-    const ring = $('#dayRing'); ring.style.setProperty('--p', pct); ring.dataset.label = pct + '%';
-    $('#doneCount').textContent = `${done} / ${tasks.length}`;
-    const s = streak(); $('#streakCount').textContent = `${s} day${s === 1 ? '' : 's'}`;
-    $('#todayTitle').textContent = !tasks.length ? "Let's make today easy" : done === tasks.length ? 'All done. Seriously, nice work.' : `${tasks.length - done} thing${tasks.length - done > 1 ? 's' : ''} left today`;
-    if (!tasks.length) {
-      list.innerHTML = '<li class="empty"><b>Your day is a blank page ✨</b>Type what\'s on your mind above, or tap a suggestion.</li>';
-    } else {
-      list.innerHTML = tasks.map(t => `
-        <li class="task ${t.done ? 'done' : ''}" data-id="${t.id}">
-          <div class="task-top">
-            <button class="check" data-act="toggle" aria-label="${t.done ? 'Mark not done' : 'Mark done'}: ${esc(t.title)}">${t.done ? '✓' : ''}</button>
-            <span class="t-title">${esc(t.title)}</span>
-            ${t.guard ? '<span class="t-tag guard">GUARD</span>' : ''}
-            <div class="t-actions">
-              <button class="icon-btn" data-act="step" aria-label="Show first step" title="First step">⚡</button>
-              <button class="icon-btn" data-act="focus" aria-label="Start a 2-minute timer" title="2-minute start">⏱</button>
-              <button class="icon-btn" data-act="del" aria-label="Delete task" title="Delete">✕</button>
-            </div>
-          </div>
-          ${t.showStep && !t.done ? `<div class="first-step"><span>⚡ <b>First step:</b> ${esc(t.step)}</span><button class="btn btn-aqua" data-act="focus">Start 2 min</button></div>` : ''}
-        </li>`).join('');
-    }
-    renderGuardSummary();
-  };
-
-  list.addEventListener('click', e => {
-    const btn = e.target.closest('[data-act]'); if (!btn) return;
-    const li = btn.closest('.task'); const t = state.tasks.find(x => x.id === li.dataset.id); if (!t) return;
-    const act = btn.dataset.act;
-    if (act === 'toggle') {
-      t.done = !t.done; t.doneOn = t.done ? today : null;
-      state.days[today] = state.tasks.filter(x => x.done && x.doneOn === today).length;
-      if (!state.days[today]) delete state.days[today];
-      if (t.done) { const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2); }
-      if (t.done && t.guardType === 'device' && t.deviceId) { const d = state.devices.find(x => x.id === t.deviceId); if (d) { d.updated = today; toast(`${d.name} marked as updated today.`); } }
-    } else if (act === 'step') { t.showStep = !t.showStep; }
-    else if (act === 'del') { state.tasks = state.tasks.filter(x => x !== t); toast('Task removed.'); }
-    else if (act === 'focus') { openFocus(t); return; }
-    save(); renderToday();
-  });
-
-  /* ---------- 2-minute focus ---------- */
-  const focusEl = $('#focus'); let timerId = null; let focusTask = null; let lastFocus = null;
-  const openFocus = t => {
-    focusTask = t; lastFocus = document.activeElement;
-    $('#focusTitle').textContent = t.title; $('#focusStep').textContent = '⚡ ' + t.step;
-    focusEl.hidden = false; $('#focusDone').focus();
-    const total = 120; let left = total; const tEl = $('#timer'); const txt = $('#timerText');
-    const paint = () => { tEl.style.setProperty('--p', left / total * 100); txt.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`; };
-    paint(); clearInterval(timerId);
-    timerId = setInterval(() => { left--; paint(); if (left <= 0) { clearInterval(timerId); txt.textContent = '🎉'; $('#focusStep').textContent = 'Two minutes done. The hard part is over. Keep going?'; } }, 1000);
-  };
-  const closeFocus = () => { clearInterval(timerId); focusEl.hidden = true; if (lastFocus) lastFocus.focus(); };
-  $('#focusClose').addEventListener('click', closeFocus);
-  $('#focusDone').addEventListener('click', () => { closeFocus(); if (focusTask) { focusTask.started = true; save(); } toast("Nice. You started. That's the hardest part."); });
-  focusEl.addEventListener('click', e => { if (e.target === focusEl) closeFocus(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !focusEl.hidden) closeFocus(); });
-
-  /* ---------- GUARD ---------- */
-  const devStatus = d => {
-    const n = daysSince(d.updated);
-    if (n === null) return { cls: 'warn', label: 'Add last update date', ok: false, n };
-    if (n <= 30) return { cls: 'ok', label: n === 0 ? 'Updated today' : `Updated ${n} day${n > 1 ? 's' : ''} ago`, ok: true, n };
-    if (n <= 60) return { cls: 'warn', label: `Check for updates · ${n} days`, ok: false, n };
-    return { cls: 'bad', label: `Overdue · ${n} days`, ok: false, n };
-  };
-  const guardEval = () => {
-    const pwAge = state.pw.last ? Math.floor((Date.now() - state.pw.last) / DAY) : null;
-    const items = [];
-    items.push(pwAge === null ? { s: 'todo', t: 'Run a private password check' } : pwAge <= 30 ? { s: 'ok', t: `Password checked ${pwAge === 0 ? 'today' : pwAge + ' days ago'}` } : { s: 'bad', t: `Last password check was ${pwAge} days ago` });
-    if (state.pw.last) items.push(state.pw.breached && !state.pw.resolved ? { s: 'bad', t: 'A leaked password still needs changing' } : { s: 'ok', t: 'No unresolved leaked passwords' });
-    if (!state.devices.length) items.push({ s: 'todo', t: 'Add your devices for update reminders' });
-    state.devices.forEach(d => { const st = devStatus(d); items.push({ s: st.ok ? 'ok' : 'bad', t: `${d.name}: ${st.label}` }); });
-    const started = state.pw.last || state.devices.length;
-    let score = null;
-    if (started) {
-      const pwPts = pwAge !== null && pwAge <= 30 ? 30 : 0;
-      const leakPts = state.pw.last ? (state.pw.breached && !state.pw.resolved ? 0 : 30) : 0;
-      const devPts = state.devices.length ? Math.round(40 * state.devices.filter(d => devStatus(d).ok).length / state.devices.length) : 0;
-      score = pwPts + leakPts + devPts;
-    }
-    const issues = [];
-    if (state.pw.breached && !state.pw.resolved) issues.push({ title: 'Change the password that showed up in a breach', guardType: 'pw' });
-    if (pwAge === null || pwAge > 30) issues.push({ title: 'Run a private password breach check', guardType: 'pwcheck' });
-    state.devices.forEach(d => { const st = devStatus(d); if (!st.ok && st.n !== null) issues.push({ title: `Update ${d.name}`, guardType: 'device', deviceId: d.id }); });
-    return { items, score, issues };
-  };
-
-  const paintRing = (el, score) => { el.style.setProperty('--p', score ?? 0); el.dataset.label = score === null ? '—' : score; };
-  const renderGuardSummary = () => {
-    const g = guardEval();
-    paintRing($('#guardRingMini'), g.score);
-    $('#guardMini').textContent = g.score === null ? 'Not checked' : g.score >= 80 ? `${g.score} · Looking good` : `${g.score} · Needs attention`;
-    const real = g.issues.filter(i => i.guardType !== 'pwcheck' || state.pw.last); // don't nag first-time visitors
-    const badge = $('#guardBadge'); badge.hidden = !real.length; badge.textContent = real.length;
-    const alert = $('#guardAlert');
-    const already = state.tasks.filter(t => t.guard && !t.done).map(t => t.title);
-    const newIssues = real.filter(i => !already.includes(i.title));
-    alert.hidden = !newIssues.length;
-    if (newIssues.length) {
-      $('#guardAlertTitle').textContent = `Today's Guard check found ${newIssues.length} thing${newIssues.length > 1 ? 's' : ''}`;
-      $('#guardAlertText').textContent = newIssues.map(i => i.title).join(' · ');
-    }
-  };
-  $('#addGuardTasks').addEventListener('click', () => {
-    const already = state.tasks.filter(t => t.guard && !t.done).map(t => t.title);
-    guardEval().issues.filter(i => (i.guardType !== 'pwcheck' || state.pw.last) && !already.includes(i.title))
-      .forEach(i => addTask(i.title, { guard: true, guardType: i.guardType, deviceId: i.deviceId }));
-    toast('Added to today. Tap ⚡ to see how.');
-  });
-
-  const renderGuard = () => {
-    const g = guardEval();
-    paintRing($('#guardRing'), g.score);
-    $('#guardChecklist').innerHTML = g.items.map(i => `<li class="${i.s === 'ok' ? 'ok' : i.s === 'bad' ? 'bad' : ''}"><i>${i.s === 'ok' ? '✓' : i.s === 'bad' ? '!' : '•'}</i>${esc(i.t)}</li>`).join('');
-  };
-
-  /* SHA-1: Web Crypto when available, tiny pure-JS fallback otherwise (e.g. opened from a file) */
-  const sha1Fallback = msg => {
-    const rotl = (n, s) => (n << s) | (n >>> (32 - s));
-    const bytes = new TextEncoder().encode(msg); const len = bytes.length;
-    const words = []; for (let i = 0; i < len; i++) words[i >> 2] |= bytes[i] << (24 - (i % 4) * 8);
-    words[len >> 2] |= 0x80 << (24 - (len % 4) * 8); words[(((len + 8) >> 6) << 4) + 15] = len * 8;
-    let [a, b, c, d, e] = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0]; const w = new Array(80);
-    for (let i = 0; i < words.length; i += 16) {
-      let [A, B, C, D, E] = [a, b, c, d, e];
-      for (let j = 0; j < 80; j++) {
-        w[j] = j < 16 ? (words[i + j] | 0) : rotl(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
-        const f = j < 20 ? (B & C) | (~B & D) : j < 40 ? B ^ C ^ D : j < 60 ? (B & C) | (B & D) | (C & D) : B ^ C ^ D;
-        const k = j < 20 ? 0x5A827999 : j < 40 ? 0x6ED9EBA1 : j < 60 ? 0x8F1BBCDC : 0xCA62C1D6;
-        const tmp = (rotl(A, 5) + f + E + k + w[j]) | 0; E = D; D = C; C = rotl(B, 30); B = A; A = tmp;
-      }
-      a = (a + A) | 0; b = (b + B) | 0; c = (c + C) | 0; d = (d + D) | 0; e = (e + E) | 0;
-    }
-    return [a, b, c, d, e].map(x => (x >>> 0).toString(16).padStart(8, '0')).join('').toUpperCase();
-  };
-  const sha1 = async msg => {
-    if (window.crypto?.subtle) {
-      const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(msg));
-      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-    }
-    return sha1Fallback(msg);
-  };
-
-  const pwInput = $('#pwInput'); const pwRes = $('#pwResult');
-  $('#pwEye').addEventListener('click', () => { const show = pwInput.type === 'password'; pwInput.type = show ? 'text' : 'password'; $('#pwEye').setAttribute('aria-label', show ? 'Hide password' : 'Show password'); });
-  const showResult = (cls, html) => { pwRes.className = 'result show ' + cls; pwRes.innerHTML = html; };
-  $('#pwForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const pw = pwInput.value; if (!pw) { pwInput.focus(); return; }
-    const btn = $('#pwBtn'); btn.disabled = true; btn.textContent = 'Checking…';
-    try {
-      const hash = await sha1(pw);
-      const prefix = hash.slice(0, 5), suffix = hash.slice(5);
-      const res = await fetch('https://api.pwnedpasswords.com/range/' + prefix);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const body = await res.text();
-      const lines = body.split('\n');
-      const hit = lines.find(l => l.split(':')[0].trim() === suffix);
-      const count = hit ? parseInt(hit.split(':')[1], 10) : 0;
-      const trace = `<div class="leak-trace">sent → <span class="sent">${prefix}</span><br>kept on this device → <span class="kept">${suffix.slice(0, 12)}…</span><br>matches returned → ${lines.length} · compared locally</div>`;
-      state.pw.last = Date.now(); state.pw.lastPrefix = prefix;
-      if (count) {
-        state.pw.breached = true; state.pw.resolved = false;
-        showResult('bad', `<b>⚠️ This password has shown up ${count.toLocaleString()} time${count > 1 ? 's' : ''} in known data breaches.</b><br>Attackers try leaked passwords first. Change it anywhere you use it, and don't reuse it.<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-soft" id="pwToTask">Add "change it" to today</button><button class="btn btn-soft" id="pwResolved">I changed it ✓</button></div>${trace}`);
-      } else {
-        if (state.pw.breached && !state.pw.resolved) { /* keep earlier unresolved finding */ } else { state.pw.breached = false; state.pw.resolved = true; }
-        showResult('good', `<b>✓ Good news: this password wasn't found in known breaches.</b><br>That doesn't make it unbreakable. Long and unique still wins.${trace}`);
-      }
-      save(); renderGuard(); renderToday();
-    } catch (err) {
-      showResult('info', "<b>Couldn't reach the breach database.</b><br>Check your connection and try again. Nothing was saved.");
-    } finally {
-      pwInput.value = ''; pwInput.type = 'password'; btn.disabled = false; btn.textContent = 'Check privately';
-    }
-  });
-  pwRes.addEventListener('click', e => {
-    if (e.target.id === 'pwToTask') { addTask('Change the password that showed up in a breach', { guard: true, guardType: 'pw' }); toast('Added to today.'); }
-    if (e.target.id === 'pwResolved') { state.pw.resolved = true; state.tasks.filter(t => t.guardType === 'pw' && !t.done).forEach(t => { t.done = true; t.doneOn = today; }); save(); renderGuard(); renderToday(); toast('Nice. Guard score updated.'); e.target.disabled = true; }
-  });
-
-  /* ---------- DEVICES ---------- */
-  const ICON = { phone: '📱', laptop: '💻', tablet: '📲', router: '📶', watch: '⌚', other: '🔌' };
-  const HOWTO = { phone: 'Settings → General → Software Update (iPhone) or Settings → System → Software update (Android)', laptop: 'Mac: System Settings → General → Software Update · Windows: Settings → Windows Update', tablet: 'Settings → Software Update', router: "Open your router's app or admin page and look for Firmware update", watch: 'Update from the companion app on your phone', other: "Check the maker's app or website for updates" };
-  const detectDevice = () => {
-    const ua = navigator.userAgent;
-    let os = 'your device', type = 'laptop';
-    if (/iPhone/.test(ua)) { os = 'iPhone'; type = 'phone'; }
-    else if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) { os = 'iPad'; type = 'tablet'; }
-    else if (/Android/.test(ua)) { os = /Mobile/.test(ua) ? 'Android phone' : 'Android tablet'; type = /Mobile/.test(ua) ? 'phone' : 'tablet'; }
-    else if (/Mac OS X|Macintosh/.test(ua)) os = 'Mac';
-    else if (/Windows/.test(ua)) os = 'Windows PC';
-    else if (/CrOS/.test(ua)) os = 'Chromebook';
-    else if (/Linux/.test(ua)) os = 'Linux computer';
-    const B = [['Edge', /Edg\/(\d+)/], ['Opera', /OPR\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]];
-    let b = ['your browser', '']; for (const [n, re] of B) { const m = re.exec(ua); if (m) { b = [n, m[1]]; break; } }
-    return { os, type, browser: b[0] + (b[1] ? ' ' + b[1] : '') };
-  };
-  const det = detectDevice();
-  const renderDetect = () => {
-    $('#detect').innerHTML = `<span>🔎 Looks like you're on a <b>${esc(det.os)}</b> using <b>${esc(det.browser)}</b>. We can't look inside your device (that's a good thing), so tell us when it was last updated.</span><button class="btn btn-soft" id="useDetected">Use this device</button>`;
-    $('#useDetected').addEventListener('click', () => { $('#devType').value = det.type; $('#devName').value = 'My ' + det.os; $('#devDate').focus(); toast('Now pick the date it was last updated.'); });
-  };
-  $('#devDate').max = today;
-  $('#devForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const name = $('#devName').value.trim(); if (!name) { $('#devName').focus(); return; }
-    const updated = $('#devDate').value || null;
-    state.devices.push({ id: uid(), type: $('#devType').value, name, updated });
-    save(); $('#devName').value = ''; $('#devDate').value = ''; renderDevices(); renderToday();
-    toast(updated ? `${name} added.` : `${name} added. Add its last update date for reminders.`);
-  });
-  const renderDevices = () => {
-    renderDetect();
-    const el = $('#devList');
-    if (!state.devices.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>No devices yet</b>Add your phone, laptop and Wi-Fi router. Those three cover most of your risk.</div>'; return; }
-    el.innerHTML = state.devices.map(d => { const st = devStatus(d); return `
-      <div class="dev" data-id="${d.id}" data-tilt-sm>
-        <div class="dev-ic">${ICON[d.type] || '🔌'}</div><h5>${esc(d.name)}</h5>
-        <small>${d.updated ? 'Last updated ' + new Date(d.updated + 'T12:00:00').toLocaleDateString() : 'Last update unknown'}</small><br>
-        <span class="pill ${st.cls}">${st.label}</span>
-        ${!st.ok ? `<p style="font-size:12px;color:#7a86a0;margin:0 0 10px;line-height:1.5">How: ${esc(HOWTO[d.type])}</p>` : ''}
-        <div class="dev-actions"><button class="btn btn-soft" data-dact="updated">Updated today ✓</button><button class="icon-btn" data-dact="del" aria-label="Remove ${esc(d.name)}">✕</button></div>
-      </div>`; }).join('');
-  };
-  $('#devList').addEventListener('click', e => {
-    const b = e.target.closest('[data-dact]'); if (!b) return;
-    const card = b.closest('.dev'); const d = state.devices.find(x => x.id === card.dataset.id); if (!d) return;
-    if (b.dataset.dact === 'updated') { d.updated = today; state.tasks.filter(t => t.deviceId === d.id && !t.done).forEach(t => { t.done = true; t.doneOn = today; }); toast(`${d.name} is up to date. Nice.`); const r = b.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top); }
-    else { state.devices = state.devices.filter(x => x !== d); toast('Device removed.'); }
-    save(); renderDevices(); renderToday();
-  });
-
-  /* ---------- MY DATA ---------- */
-  const renderLedger = () => {
-    const bytes = new Blob([localStorage.getItem(KEY) || '']).size;
-    $('#ledger').innerHTML = [
-      ['Your tasks & first steps', '<span class="tag-local">This browser only</span>', `${state.tasks.length} task${state.tasks.length === 1 ? '' : 's'}`],
-      ['Your devices & update dates', '<span class="tag-local">This browser only</span>', `${state.devices.length} device${state.devices.length === 1 ? '' : 's'}`],
-      ['Streak history', '<span class="tag-local">This browser only</span>', `${Object.keys(state.days).length} day${Object.keys(state.days).length === 1 ? '' : 's'} logged`],
-      ['Passwords you check', '<b>Never stored anywhere</b>', 'Cleared from the screen right after checking'],
-      ['Sent over the internet', '<span class="tag-out">Have I Been Pwned (5 characters)</span>', state.pw.lastPrefix ? `Last sent: <code>${esc(state.pw.lastPrefix)}</code> on ${new Date(state.pw.last).toLocaleDateString()}` : 'Nothing sent yet'],
-      ['Sent to AI (Claude by Anthropic)', '<span class="tag-out">Only when you press ✨ Plan my day</span>', state.ai.count ? `${state.ai.count} request${state.ai.count > 1 ? 's' : ''} · last: ${state.ai.lastChars} characters on ${new Date(state.ai.last).toLocaleDateString()}` : 'Nothing sent yet'],
-      ['Your account (if logged in)', '<span class="tag-out">ClinicGuard database (Neon)</span>', account.user ? `${esc(account.user.email)} · ${account.user.plan} plan · hashed password · daily AI count` : 'Not logged in: nothing stored'],
-      ['Total saved on this device', '<span class="tag-local">localStorage</span>', `${bytes.toLocaleString()} bytes`],
-    ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
-  };
-  $('#exportBtn').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ app: 'ClinicGuard Personal', exported: new Date().toISOString(), ...state }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `clinicguard-personal-${today}.json`; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Exported. That file is your backup.');
-  });
-  let wipeArmed = false;
-  $('#wipeBtn').addEventListener('click', e => {
-    if (!wipeArmed) { wipeArmed = true; e.currentTarget.textContent = '⚠️ Tap again to erase everything'; setTimeout(() => { wipeArmed = false; $('#wipeBtn').textContent = '🗑 Erase everything'; }, 4000); return; }
-    state = fresh(); try { localStorage.removeItem(KEY); } catch {} wipeArmed = false;
-    $('#wipeBtn').textContent = '🗑 Erase everything'; renderLedger(); renderToday(); toast('Everything erased from this device.');
-  });
-
-
-
-  /* ---------- ✨ AI PLANNER (Plus AI preview) ---------- */
-  const planOut = $('#planOut');
-  const PRIO = { high: 'High', medium: 'Medium', low: 'Low' };
-  const renderPlan = () => {
-    const p = state.lastPlan;
-    if (!p) { planOut.innerHTML = ''; return; }
-    const added = p.added || [];
-    planOut.innerHTML = `
-      <div class="plan-summary"><span style="font-size:26px">✨</span><div><b>${esc(p.summary || 'Your plan for today')}</b><p>Made ${new Date(p.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · ${p.blocks.length} block${p.blocks.length === 1 ? '' : 's'}. Add what you like to Today.</p></div></div>
-      <div class="plan-grid">${p.blocks.map((b, i) => `
-        <div class="plan-block" style="animation-delay:${i * 80}ms">
-          <div class="plan-time">${esc(b.time)}<small>${b.minutes ? esc(b.minutes) + ' min' : ''}</small></div>
-          <div><h5>${esc(b.title)}${b.priority && PRIO[b.priority] ? `<span class="prio ${b.priority}">${PRIO[b.priority]}</span>` : ''}</h5>${b.why ? `<p>${esc(b.why)}</p>` : ''}${b.firstStep ? `<p class="plan-step">⚡ <b>First step:</b> ${esc(b.firstStep)}</p>` : ''}</div>
-          <button class="btn btn-soft" data-add-block="${i}" ${added.includes(i) ? 'disabled' : ''}>${added.includes(i) ? 'Added ✓' : '+ Today'}</button>
-        </div>`).join('')}</div>
-      <div class="plan-actions"><button class="btn btn-dark" id="addAllPlan">Add all to Today</button><button class="btn btn-soft" id="clearPlan">Clear plan</button></div>
-      ${p.tip ? `<p class="plan-tip">💡 ${esc(p.tip)}</p>` : ''}`;
-  };
-  const addBlock = i => {
-    const p = state.lastPlan; const b = p && p.blocks[i]; if (!b) return;
-    p.added = p.added || []; if (p.added.includes(i)) return;
-    addTask(b.title, { step: b.firstStep || firstStep(b.title), ai: true });
-    p.added.push(i); save();
-  };
-  planOut.addEventListener('click', e => {
-    const one = e.target.closest('[data-add-block]');
-    if (one) { addBlock(+one.dataset.addBlock); renderPlan(); toast('Added to Today.'); return; }
-    if (e.target.id === 'addAllPlan') { state.lastPlan.blocks.forEach((_, i) => addBlock(i)); renderPlan(); toast('Your plan is in Today. Tap ⚡ on any task to start.'); location.hash = '#/app'; showTab('today'); }
-    if (e.target.id === 'clearPlan') { state.lastPlan = null; save(); renderPlan(); }
-  });
-
-  const consentEl = $('#aiConsent'); let pendingPlan = null;
-  const askConsent = () => new Promise(resolve => {
-    consentEl.hidden = false; $('#aiAgree').focus();
-    pendingPlan = ok => { consentEl.hidden = true; pendingPlan = null; resolve(ok); };
-  });
-  $('#aiAgree').addEventListener('click', () => { if ($('#aiRemember').checked) { state.ai.consent = true; save(); } pendingPlan && pendingPlan(true); });
-  $('#aiCancel').addEventListener('click', () => pendingPlan && pendingPlan(false));
-  consentEl.addEventListener('click', e => { if (e.target === consentEl && pendingPlan) pendingPlan(false); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !consentEl.hidden && pendingPlan) pendingPlan(false); });
-
-  $('#planForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const text = $('#dump').value.trim();
-    if (text.length < 3) { $('#dump').focus(); toast('Type a few things on your mind first.'); return; }
-    if (!account.user) { goLogin('Log in or create a free account to use the AI Planner.'); return; }
-    if (!state.ai.consent && !(await askConsent())) { toast('No problem. Nothing was sent.'); return; }
-    const btn = $('#planBtn'); btn.disabled = true; btn.textContent = 'Planning…';
-    planOut.innerHTML = '<div class="loading"><span class="spinner"></span>Claude is building your plan…</div>';
-    const payload = { text, hours: $('#hours').value, energy: $('#energy').value, localTime: new Date().toLocaleString([], { weekday: 'long', hour: 'numeric', minute: '2-digit' }) };
-    try {
-      const res = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      let data = {}; try { data = await res.json(); } catch { /* non-JSON (e.g. no server) */ }
-      state.ai.count++; state.ai.last = Date.now(); state.ai.lastChars = text.length;
-      if (res.status === 401 && data.needLogin) { account.user = null; renderAccount(); goLogin(data.error); planOut.innerHTML = ''; return; }
-      if (typeof data.aiLeft !== 'undefined' && account.user) { account.user.aiLeft = data.aiLeft; renderAccount(); }
-      if (data.needUpgrade) throw Object.assign(new Error(data.error), { upgrade: true });
-      if (!res.ok || !Array.isArray(data.blocks)) throw new Error(data.error || (res.status === 404 ? 'The AI server isn\'t running here. Open the live site (or run "vercel dev") to use AI.' : 'The AI planner had a problem. Please try again.'));
-      state.lastPlan = { ...data, at: Date.now(), added: [] }; save(); renderPlan();
-      toast('✨ Your plan is ready.');
-    } catch (err) {
-      save();
-      planOut.innerHTML = `<div class="result show info"><b>Couldn't make a plan right now.</b><br>${esc(err.message || 'Check your connection and try again.')}${err.upgrade ? '<br><button class="btn btn-aqua" type="button" data-buy style="margin-top:12px">Get Personal · $19</button>' : ''}</div>`;
-    } finally { btn.disabled = false; btn.textContent = '✨ Plan my day'; }
-  });
-
-
-  /* ---------- ACCOUNT (Neon) + PAYMENTS (Stripe) ---------- */
-  const account = { user: null, loaded: false, mode: 'signup', next: null };
   const api = async (url, opts = {}) => {
     const res = await fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opts });
     let data = {}; try { data = await res.json(); } catch { data = { error: res.status === 404 ? 'The server isn\'t running here. Use the live site.' : 'Unexpected server response.' }; }
     return { ok: res.ok, status: res.status, data };
   };
+  const fmt = ms => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const mins = ms => Math.max(0, Math.round(ms / MIN));
+
+  /* ---------- quick steps (no AI, nothing sent) ---------- */
+  const RULES = [
+    [/essay|paper|report|write|draft|thesis|blog/i, 'Open a blank doc and write just the title and 3 bullet ideas.'],
+    [/stud|exam|quiz|test|midterm|final|review/i, "Open your notes and pick the ONE topic you're least sure about."],
+    [/apply|application|internship|job|resume|cv|cover letter/i, 'Open the posting and copy its 3 key requirements into a note.'],
+    [/email|reply|message|text|dm|respond/i, 'Write only the first sentence. Sending can wait.'],
+    [/clean|laundry|room|dishes|tidy|organi/i, 'Set a timer and clear just one surface.'],
+    [/gym|workout|run|exercise|walk|lift/i, 'Put on your workout clothes. That counts as starting.'],
+    [/read|chapter|book|article/i, 'Read just the first page.'],
+    [/call|appointment|book|schedule|doctor|dentist/i, 'Find the phone number or booking link and copy it somewhere.'],
+    [/pay|bill|rent|invoice|tuition|loan/i, 'Open the payment page and check the due date and amount.'],
+    [/code|project|build|lab|assignment|homework|hw/i, "Open the project and write down the very next file or question you'll touch."],
+    [/present|slides|deck|pitch/i, 'Write the title of every slide, nothing else.'],
+  ];
+  function quickFirst(title) { return (RULES.find(([re]) => re.test(title)) || [0, 'Open whatever you need for this and look at it for 2 minutes.'])[1]; }
+  const quickSteps = title => [quickFirst(title), 'Keep going for 10 minutes. Messy is fine.', 'Write one line about where you stopped, so next time is easy.'];
+
+  function newTask(title, steps, source) {
+    return { id: uid(), title: (s => s.charAt(0).toUpperCase() + s.slice(1))(String(title).trim().slice(0, 80)), steps: steps.map(text => ({ id: uid(), text, done: false })), source, createdAt: Date.now(), firstStartAt: null, finishedAt: null, focusMs: 0, distractions: 0 };
+  }
+  const byId = id => state.tasks.find(t => t.id === id);
+  const curIndex = t => { const i = t.steps.findIndex(s => !s.done); return i === -1 ? t.steps.length : i; };
+  const openTasks = () => state.tasks.filter(t => !t.finishedAt);
+
+  // One-time import of unfinished tasks from ClinicGuard Personal (same browser)
+  if (!state.migrated) {
+    try {
+      const old = JSON.parse(localStorage.getItem('clinicguard-personal:v1') || 'null');
+      (old?.tasks || []).filter(t => !t.done && t.title).slice(0, 20).forEach(t => state.tasks.push(newTask(t.title, [t.step || quickFirst(t.title), `Work on it for 10 minutes. Messy is fine.`], 'quick')));
+    } catch { /* ignore */ }
+    state.migrated = true; save();
+  }
+
+
+  /* ---------- router ---------- */
+  const VIEWS = ['home', 'now', 'account'];
+  const TITLES = { home: "Comeback · Start what you're avoiding", now: 'Now · Comeback', account: 'Account · Comeback' };
+  let current = null;
+  const route = () => {
+    const h = location.hash; const isRoute = h.startsWith('#/');
+    let name = isRoute ? h.slice(2) : 'home'; if (!VIEWS.includes(name)) name = 'home';
+    if (name !== current) {
+      current = name;
+      $$('.view').forEach(v => { v.hidden = v.dataset.view !== name; });
+      $('.nav-account').setAttribute('aria-current', name === 'account' ? 'page' : 'false');
+      document.title = TITLES[name];
+      if (name === 'now') renderNow();
+      if (name === 'account') renderLedger();
+      if (isRoute || !h) window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    if (!isRoute && h.length > 1) { const el = document.getElementById(h.slice(1)); if (el) el.scrollIntoView({ behavior: 'smooth' }); }
+  };
+  addEventListener('hashchange', route);
+
+  /* ---------- landing ---------- */
+  $('#heroForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#heroTask').value.trim();
+    location.hash = '#/now';
+    if (v) { $('#askInput').value = v; $('#heroTask').value = ''; createFromAsk(); } else setTimeout(() => $('#askInput').focus(), 60);
+  });
+  $$('[data-fill]').forEach(b => b.addEventListener('click', () => { $('#heroTask').value = b.dataset.fill; $('#heroTask').focus(); }));
+
+  /* ---------- NOW screen ---------- */
+  const planCard = $('#planCard');
+  const selected = () => byId(state.selectedId);
+
+  function renderNow() {
+    renderAskNote(); renderPlan(); renderList(); renderResume(); renderStats();
+  }
+
+  function renderAskNote() {
+    const u = account.user; const n = $('#askNote');
+    if (!account.loaded) { n.textContent = ''; return; }
+    if (!u) n.innerHTML = 'Quick steps work right away. <a href="#/account">Create a free account</a> to get ✨ AI steps written for your exact task (5 a day).';
+    else if (u.aiLeft > 0) n.innerHTML = `✨ AI steps on · ${u.aiLeft} left today${u.plan === 'personal' ? '' : ' · <a href="#/account">Upgrade</a>'}`;
+    else n.innerHTML = `You've used today's AI steps, so you'll get quick steps.${u.plan === 'personal' ? '' : ' <a href="#/account">Become a founding member</a> for 100 a day.'}`;
+  }
+
+  function renderPlan() {
+    const t = selected();
+    if (!t || t.finishedAt) { planCard.hidden = true; return; }
+    planCard.hidden = false;
+    $('#planTitle').value = t.title;
+    const badge = $('#planBadge'); badge.textContent = t.source === 'ai' ? '✨ AI steps' : 'Quick steps'; badge.classList.toggle('quick', t.source !== 'ai');
+    $('#planTip').textContent = t.tip || '';
+    const ci = curIndex(t);
+    $('#planSteps').innerHTML = t.steps.map((s, i) => `<li class="${s.done ? 'done' : ''}" data-id="${s.id}"><label class="sr-only" for="st-${s.id}">Step ${i + 1}</label><textarea id="st-${s.id}" rows="1" maxlength="140">${esc(s.text)}</textarea><button type="button" class="step-x" data-del="${s.id}" aria-label="Remove step ${i + 1}">×</button></li>`).join('');
+    $$('#planSteps textarea').forEach(fit);
+    $('#startBtn').textContent = ci === 0 ? 'Start step 1 →' : ci < t.steps.length ? `Continue step ${ci + 1} →` : 'Finish →';
+    $('#smallerBtn').textContent = `Step ${Math.min(ci, t.steps.length - 1) + 1} still feels too big? Make it smaller`;
+  }
+
+  function fit(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+  addEventListener('resize', () => $$('#planSteps textarea').forEach(fit));
+
+  function renderList() {
+    const list = openTasks().filter(t => t.id !== state.selectedId);
+    $('#listCard').hidden = !list.length;
+    $('#taskList').innerHTML = list.map(t => {
+      const ci = curIndex(t);
+      return `<li><div class="t"><b>${esc(t.title)}</b><span>${t.firstStartAt ? `Step ${Math.min(ci + 1, t.steps.length)} of ${t.steps.length}` : 'Not started yet'}</span></div><button class="btn btn-ghost btn-sm" data-open="${t.id}">Open</button><button class="step-x" data-remove="${t.id}" aria-label="Remove ${esc(t.title)}">×</button></li>`;
+    }).join('');
+  }
+
+  function renderResume() {
+    const t = openTasks().filter(x => x.firstStartAt && x.id !== state.selectedId).sort((a, b) => (b.lastActiveAt || 0) - (a.lastActiveAt || 0))[0];
+    const show = t && state.dismissedResume !== t.id && !state.session;
+    $('#resume').hidden = !show;
+    if (!show) return;
+    const s = t.steps[Math.min(curIndex(t), t.steps.length - 1)];
+    $('#resumeTitle').textContent = t.title;
+    $('#resumeStep').textContent = `You were on: ${s ? s.text : 'the last step'}`;
+    $('#resumeBtn').dataset.id = t.id;
+  }
+
+  function renderStats() {
+    const since = Date.now() - 7 * DAY;
+    const started = state.tasks.filter(t => t.firstStartAt && t.firstStartAt > since);
+    const finished = state.tasks.filter(t => t.finishedAt && t.finishedAt > since).length;
+    const waits = started.map(t => t.firstStartAt - t.createdAt).sort((a, b) => a - b);
+    const median = waits.length ? waits[Math.floor(waits.length / 2)] : null;
+    const comebacks = state.recoveries.filter(x => x > since).length;
+    const focus = state.tasks.reduce((n, t) => n + (t.focusMs || 0), 0);
+    const el = $('#stats');
+    el.hidden = !started.length;
+    if (!started.length) return;
+    const medTxt = median === null ? '–' : median < MIN ? '<1 min' : median < 60 * MIN ? `${mins(median)} min` : `${Math.round(median / 3600000)} h`;
+    el.innerHTML = [[started.length, 'started this week'], [finished, 'finished'], [medTxt, 'median time to start'], [comebacks, 'comebacks']]
+      .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('') + (focus ? '' : '');
+  }
+
+  // create a task from the ask box
+  async function createFromAsk() {
+    const text = $('#askInput').value.trim();
+    if (text.length < 2) { $('#askInput').focus(); toast('Type what you\'re avoiding first.'); return; }
+    const btn = $('#askBtn');
+    let useAi = account.user && account.user.aiLeft > 0;
+    if (useAi && !state.aiConsent) useAi = await askConsent();
+    let t;
+    if (useAi) {
+      btn.disabled = true; btn.textContent = 'Thinking…';
+      planCard.hidden = false;
+      $('#planSteps').innerHTML = '<li class="loading"><span class="spinner"></span>Writing tiny steps for you…</li>';
+      const r = await api('/api/step', { method: 'POST', body: JSON.stringify({ action: 'breakdown', task: text }) }).catch(() => ({ ok: false, data: {} }));
+      btn.disabled = false; btn.textContent = 'Break it down';
+      if (typeof r.data.aiLeft === 'number' && account.user) { account.user.aiLeft = r.data.aiLeft; renderAccount(); }
+      if (r.ok && Array.isArray(r.data.steps)) { t = newTask(r.data.title || text, r.data.steps, 'ai'); t.tip = r.data.tip || ''; track('ai_breakdown'); }
+      else {
+        if (r.status === 401) { account.user = null; renderAccount(); }
+        toast(r.data.error ? `${r.data.error} Using quick steps.` : 'AI is unavailable right now. Using quick steps.');
+      }
+    }
+    if (!t) { t = newTask(text, quickSteps(text), 'quick'); track('quick_steps'); }
+    state.tasks.unshift(t); state.selectedId = t.id; save();
+    $('#askInput').value = '';
+    track('task_created');
+    renderNow();
+    $('#planCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  $('#askForm').addEventListener('submit', e => { e.preventDefault(); createFromAsk(); });
+  $$('[data-ask]').forEach(b => b.addEventListener('click', () => { $('#askInput').value = b.dataset.ask; createFromAsk(); }));
+
+  // editing the plan (never overwritten without the user doing it)
+  $('#planTitle').addEventListener('input', e => { const t = selected(); if (t) { t.title = e.target.value.slice(0, 80) || 'Untitled'; save(); } });
+  $('#planSteps').addEventListener('input', e => {
+    const li = e.target.closest('li'); const t = selected(); if (!li || !t) return;
+    const s = t.steps.find(x => x.id === li.dataset.id); if (s) { s.text = e.target.value.replace(/\n/g, ' ').slice(0, 140); save(); fit(e.target); }
+  });
+  $('#planSteps').addEventListener('click', e => {
+    const id = e.target.dataset.del; const t = selected(); if (!id || !t) return;
+    if (t.steps.length <= 1) { toast('Keep at least one step.'); return; }
+    t.steps = t.steps.filter(s => s.id !== id); save(); renderPlan();
+  });
+  $('#addStep').addEventListener('click', () => {
+    const t = selected(); if (!t || t.steps.length >= 12) return;
+    const s = { id: uid(), text: '', done: false }; t.steps.push(s); save(); renderPlan();
+    $(`#st-${s.id}`).focus();
+  });
+  let sessionMin = 10;
+  $$('.seg-mini [data-min]').forEach(b => b.addEventListener('click', () => {
+    sessionMin = +b.dataset.min;
+    $$('.seg-mini [data-min]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); });
+  }));
+  $('#startBtn').addEventListener('click', () => { const t = selected(); if (t) startSession(t, sessionMin); });
+  $('#smallerBtn').addEventListener('click', async () => {
+    const t = selected(); if (!t) return;
+    const i = Math.min(curIndex(t), t.steps.length - 1);
+    await makeSmaller(t, i);
+    renderPlan();
+  });
+
+  $('#taskList').addEventListener('click', e => {
+    const open = e.target.closest('[data-open]'); const rm = e.target.closest('[data-remove]');
+    if (open) { state.selectedId = open.dataset.open; save(); renderNow(); $('#planCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    if (rm) {
+      const t = byId(rm.dataset.remove);
+      if (t && confirm(`Remove "${t.title}" from your list?`)) { state.tasks = state.tasks.filter(x => x.id !== t.id); save(); renderNow(); }
+    }
+  });
+  $('#resumeBtn').addEventListener('click', e => { const t = byId(e.currentTarget.dataset.id); if (t) { state.selectedId = t.id; save(); startSession(t, 10); } });
+  $('#resumeLater').addEventListener('click', () => { const t = byId($('#resumeBtn').dataset.id); state.dismissedResume = t ? t.id : null; save(); renderResume(); });
+
+  // AI: make a step smaller (falls back to a simple split without AI)
+  async function makeSmaller(t, i) {
+    const step = t.steps[i]; if (!step) return false;
+    let pieces = null;
+    let useAi = account.user && account.user.aiLeft > 0;
+    if (useAi && !state.aiConsent) useAi = await askConsent();
+    if (useAi) {
+      toast('Making it smaller…');
+      const r = await api('/api/step', { method: 'POST', body: JSON.stringify({ action: 'smaller', task: t.title, step: step.text }) }).catch(() => ({ ok: false, data: {} }));
+      if (typeof r.data.aiLeft === 'number' && account.user) { account.user.aiLeft = r.data.aiLeft; renderAccount(); }
+      if (r.ok && Array.isArray(r.data.steps)) pieces = r.data.steps;
+    }
+    if (!pieces) pieces = ['Open what you need for this step. Just open it.', `Do only the first 2 minutes of: ${step.text.replace(/\.$/, '')}`];
+    t.steps.splice(i, 1, ...pieces.map(text => ({ id: uid(), text, done: false })));
+    track('stuck'); save();
+    toast('Made it smaller. Just do the first one.');
+    return true;
+  }
+
+  /* ---------- focus mode ---------- */
+  const F = { el: $('#focus'), main: $('#fMain'), recover: $('#fRecover'), timeup: $('#fTimeup'), finished: $('#fFinished') };
+  let tick = null, hiddenAt = null, lastFocusEl = null;
+  const sess = () => state.session;
+  const remaining = () => { const s = sess(); if (!s) return 0; return s.paused ? s.left : s.endsAt - Date.now(); };
+
+  function showPanel(which) {
+    ['main', 'recover', 'timeup', 'finished'].forEach(k => { F[k].hidden = k !== which; });
+    const target = { main: '#fDone', recover: '#fRestart', timeup: '#fUpDone', finished: '#fBack' }[which];
+    setTimeout(() => $(target)?.focus(), 30);
+  }
+
+  function startSession(t, minutes) {
+    const now = Date.now();
+    if (!t.firstStartAt) t.firstStartAt = now;
+    t.lastActiveAt = now;
+    state.selectedId = t.id; state.dismissedResume = null;
+    state.session = { taskId: t.id, startedAt: now, endsAt: now + minutes * MIN, total: minutes * MIN, paused: false, left: 0 };
+    save(); track('session_started');
+    openFocus();
+  }
+
+  function openFocus() {
+    const s = sess(); const t = s && byId(s.taskId);
+    if (!t) { state.session = null; save(); return; }
+    lastFocusEl = document.activeElement;
+    F.el.hidden = false; document.body.style.overflow = 'hidden';
+    paintFocus(); showPanel('main');
+    clearInterval(tick); tick = setInterval(onTick, 250); onTick();
+  }
+
+  function paintFocus() {
+    const s = sess(); const t = byId(s.taskId); const i = curIndex(t);
+    $('#fTask').textContent = t.title;
+    $('#fCount').textContent = `Step ${Math.min(i + 1, t.steps.length)} of ${t.steps.length}`;
+    $('#fStep').textContent = (t.steps[i] || t.steps[t.steps.length - 1]).text || 'Do the next small thing.';
+    $('#fDots').innerHTML = t.steps.map((x, k) => `<i class="${x.done ? 'done' : k === i ? 'cur' : ''}"></i>`).join('');
+  }
+
+  function onTick() {
+    const s = sess(); if (!s) return;
+    const left = remaining();
+    $('#fTime').textContent = fmt(left);
+    $('#fRing').style.setProperty('--p', Math.max(0, Math.min(1, left / s.total)));
+    $('#fRing').classList.toggle('paused', s.paused);
+    $('#fPause').textContent = s.paused ? '▶' : '❚❚';
+    $('#fPause').setAttribute('aria-label', s.paused ? 'Resume timer' : 'Pause timer');
+    if (!s.paused && left <= 0 && F.timeup.hidden && F.recover.hidden && F.finished.hidden) {
+      pause(); showPanel('timeup');
+    }
+  }
+
+  function pause() { const s = sess(); if (s && !s.paused) { s.left = Math.max(0, s.endsAt - Date.now()); s.paused = true; save(); } }
+  function resume() { const s = sess(); if (s && s.paused) { s.endsAt = Date.now() + s.left; s.paused = false; save(); } }
+  function restartWith(minutes) { const s = sess(); if (!s) return; s.total = minutes * MIN; s.endsAt = Date.now() + s.total; s.paused = false; save(); }
+
+  function endSession(reason) {
+    const s = sess(); if (!s) return;
+    const t = byId(s.taskId);
+    if (t) { t.focusMs = (t.focusMs || 0) + Math.max(0, Date.now() - s.startedAt); t.lastActiveAt = Date.now(); }
+    state.session = null; save();
+    clearInterval(tick); tick = null;
+    F.el.hidden = true; document.body.style.overflow = '';
+    if (reason === 'stop') toast('Saved. Your step will be waiting.');
+    if (location.hash !== '#/now') location.hash = '#/now'; else renderNow();
+    lastFocusEl?.focus?.();
+  }
+
+  function completeStep() {
+    const s = sess(); const t = s && byId(s.taskId); if (!t) return;
+    const i = curIndex(t); if (t.steps[i]) t.steps[i].done = true;
+    track('step_done');
+    if (curIndex(t) >= t.steps.length) return finishTask(t);
+    save(); paintFocus();
+    if (remaining() <= 0) restartWith(5); else resume();
+    showPanel('main');
+  }
+
+  function finishTask(t) {
+    t.finishedAt = Date.now(); save(); track('task_finished');
+    const s = sess();
+    const tookMs = (t.focusMs || 0) + (s ? Date.now() - s.startedAt : 0);
+    const wait = t.firstStartAt - t.createdAt;
+    $('#fFinishedText').textContent = `"${t.title}" is done. You worked on it for ${Math.max(1, mins(tookMs))} min${wait > MIN ? `, and started ${mins(wait) >= 60 ? Math.round(wait / 3600000) + ' h' : mins(wait) + ' min'} after naming it` : ''}.`;
+    pause(); showPanel('finished');
+  }
+
+  function distracted(auto, awayMs) {
+    const s = sess(); const t = s && byId(s.taskId); if (!t) return;
+    t.distractions = (t.distractions || 0) + 1; save(); track('distracted');
+    pause();
+    const step = (t.steps[curIndex(t)] || {}).text || '';
+    $('#fRecoverText').textContent = `${auto ? `You were away for ${Math.max(1, mins(awayMs))} min. ` : 'It happens to everyone. '}You were on: "${step}"`;
+    showPanel('recover');
+  }
+
+  $('#fDone').addEventListener('click', completeStep);
+  $('#fUpDone').addEventListener('click', completeStep);
+  $('#fPause').addEventListener('click', () => { const s = sess(); if (!s) return; s.paused ? resume() : pause(); onTick(); });
+  $('#fDistracted').addEventListener('click', () => distracted(false));
+  $('#fStuck').addEventListener('click', async () => {
+    const s = sess(); const t = s && byId(s.taskId); if (!t) return;
+    pause(); $('#fStuck').disabled = true;
+    await makeSmaller(t, Math.min(curIndex(t), t.steps.length - 1));
+    $('#fStuck').disabled = false; paintFocus(); resume(); showPanel('main');
+  });
+  $('#fRestart').addEventListener('click', () => { state.recoveries.push(Date.now()); track('recovered'); restartWith(5); showPanel('main'); });
+  $('#fKeep').addEventListener('click', () => { state.recoveries.push(Date.now()); track('recovered'); if (remaining() <= 0) restartWith(5); else resume(); showPanel('main'); });
+  $('#fMore').addEventListener('click', () => { restartWith(5); showPanel('main'); });
+  ['#fStop', '#fRecoverStop', '#fUpStop'].forEach(id => $(id).addEventListener('click', () => endSession('stop')));
+  $('#fBack').addEventListener('click', () => { state.selectedId = null; endSession('done'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !F.el.hidden && consentEl.hidden) endSession('stop'); });
+
+  // Leaving the tab during a running session counts as drifting (we only know you left, never where you went)
+  document.addEventListener('visibilitychange', () => {
+    const s = sess(); if (!s || F.el.hidden) return;
+    if (document.hidden) { if (!s.paused) hiddenAt = Date.now(); }
+    else if (hiddenAt) {
+      const away = Date.now() - hiddenAt; hiddenAt = null;
+      if (away > 45000 && F.main && !F.main.hidden) distracted(true, away);
+    }
+  });
+
+  /* ---------- AI consent ---------- */
+  const consentEl = $('#aiConsent'); let consentResolve = null;
+  function askConsent() {
+    return new Promise(resolve => {
+      consentEl.hidden = false; $('#aiAgree').focus();
+      consentResolve = ok => { consentEl.hidden = true; consentResolve = null; resolve(ok); };
+    });
+  }
+  $('#aiAgree').addEventListener('click', () => { if ($('#aiRemember').checked) { state.aiConsent = true; save(); } consentResolve && consentResolve(true); });
+  $('#aiCancel').addEventListener('click', () => consentResolve && consentResolve(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !consentEl.hidden && consentResolve) consentResolve(false); });
+
+  /* ---------- ACCOUNT (Neon) + PAYMENTS (Stripe) ---------- */
+  const account = { user: null, loaded: false, mode: 'signup', next: null };
   const setMode = mode => {
     account.mode = mode;
     $$('.seg [data-mode]').forEach(b => { const on = b.dataset.mode === mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
@@ -487,33 +398,30 @@
     $('#authMsg').textContent = '';
   };
   $$('.seg [data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
-  const renderAccount = () => {
+  function renderAccount() {
     const u = account.user;
-    $('#authBox').hidden = !!u; $('#acctBox').hidden = !u;
-    $$('[data-acct-label]').forEach(a => { a.textContent = (a.closest('#mobile-menu') ? '👤 ' : '') + (u ? 'Account' : 'Log in'); });
-    const st = $('#aiStatus');
+    $('#authBox').hidden = !!u; $('#acctBox').hidden = !u; $('#deleteBox').hidden = !u || u.email === 'demo@demo.com';
+    $$('[data-acct-label]').forEach(a => { a.textContent = u ? 'Account' : 'Log in'; });
     if (u) {
       const paid = u.plan === 'personal';
       $('#acctEmail').textContent = u.email;
-      $('#acctPlan').textContent = paid ? 'Personal ✓' : 'Free';
-      $('#acctAi').textContent = paid ? 'Unlimited' : `${u.aiLeft} of 3 left`;
+      $('#acctPlan').textContent = paid ? 'Founding member ✓' : 'Free';
+      $('#acctAi').textContent = `${u.aiLeft} of ${u.aiLimit} left`;
       $('#acctUpgrade').hidden = paid; $('#acctPaid').hidden = !paid;
-      st.innerHTML = paid ? `Logged in as <b>${esc(u.email)}</b> · Personal: unlimited AI plans`
-        : `Logged in as <b>${esc(u.email)}</b> · ${u.aiLeft} free AI plan${u.aiLeft === 1 ? '' : 's'} left today · <a href="#/account">Upgrade</a>`;
-    } else {
-      st.innerHTML = account.loaded ? '🔒 <a href="#/account">Log in or create a free account</a> to use the AI Planner (3 free plans a day).' : '';
     }
-  };
+    if (current === 'now') renderAskNote();
+    if (current === 'account') renderLedger();
+  }
   const goLogin = (msg, next) => {
-    account.next = next || location.hash || '#/ai';
+    account.next = next || null;
     location.hash = '#/account';
-    if (msg) { $('#authMsg').textContent = msg; $('#authMsg').className = 'auth-msg info'; }
-    setTimeout(() => $('#authEmail').focus(), 50);
+    if (msg) { $('#authMsg').textContent = msg; $('#authMsg').className = 'form-msg info'; }
+    setTimeout(() => $('#authEmail').focus(), 60);
   };
   $('#authForm').addEventListener('submit', async e => {
     e.preventDefault();
     const email = $('#authEmail').value.trim(), password = $('#authPw').value, msg = $('#authMsg'), btn = $('#authBtn');
-    msg.className = 'auth-msg';
+    msg.className = 'form-msg';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'Enter a valid email address.'; $('#authEmail').focus(); return; }
     if (account.mode === 'signup' && password.length < 8) { msg.textContent = 'Use at least 8 characters for your password.'; $('#authPw').focus(); return; }
     if (!password) { msg.textContent = 'Enter your password.'; $('#authPw').focus(); return; }
@@ -522,31 +430,32 @@
       const r = await api(`/api/auth?action=${account.mode}`, { method: 'POST', body: JSON.stringify({ email, password }) });
       if (!r.ok) { msg.textContent = r.data.error || 'Something went wrong.'; return; }
       account.user = r.data.user; $('#authPw').value = ''; renderAccount();
-      toast(account.mode === 'signup' ? '🎉 Account created. Welcome!' : `Welcome back, ${account.user.email}`);
+      track(account.mode === 'signup' ? 'signup' : 'login');
+      toast(account.mode === 'signup' ? '🎉 Account created. AI steps are on.' : `Welcome back, ${account.user.email}`);
       const next = account.next; account.next = null;
-      if (next === 'buy') startCheckout(); else if (next && next !== '#/account') location.hash = next;
+      if (next === 'buy') startCheckout(); else if (openTasks().length || account.mode === 'signup') location.hash = '#/now';
     } catch { msg.textContent = 'Network error. Check your connection.'; }
     finally { btn.disabled = false; btn.textContent = label; }
   });
   $('#logoutBtn').addEventListener('click', async () => {
     await api('/api/auth?action=logout', { method: 'POST' }).catch(() => {});
-    account.user = null; setMode('login'); renderAccount(); toast('You\'re logged out. Your tasks are still on this device.');
+    account.user = null; setMode('login'); renderAccount(); toast('Logged out. Your tasks are still on this device.');
   });
-  const startCheckout = async () => {
+  async function startCheckout() {
     if (!account.user) { setMode('signup'); goLogin('Create a free account (or log in), then you\'ll go straight to checkout.', 'buy'); return; }
-    if (account.user.plan === 'personal') { toast('You already have Personal ✓'); location.hash = '#/account'; return; }
-    toast('Opening secure Stripe checkout…');
+    if (account.user.plan === 'personal') { toast('You\'re already a founding member ✓'); location.hash = '#/account'; return; }
+    toast('Opening secure Stripe checkout…'); track('checkout_started');
     const r = await api('/api/checkout?action=create', { method: 'POST' }).catch(() => ({ ok: false, data: {} }));
     if (r.ok && r.data.url) { location.href = r.data.url; return; }
     if (r.ok && r.data.already) { await loadMe(); return; }
     toast(r.data.error || 'Couldn\'t open checkout. Try again.');
-  };
+  }
   document.addEventListener('click', e => { const b = e.target.closest('[data-buy]'); if (b) { e.preventDefault(); startCheckout(); } });
-  const loadMe = async () => {
+  async function loadMe() {
     const r = await api('/api/auth?action=me').catch(() => ({ ok: false, data: {} }));
     account.user = r.ok ? r.data.user : null; account.loaded = true; renderAccount();
-  };
-  const handleCheckoutReturn = async () => {
+  }
+  async function handleCheckoutReturn() {
     const params = new URLSearchParams(location.search);
     const result = params.get('checkout'); if (!result) return;
     const sessionId = params.get('session_id');
@@ -554,81 +463,44 @@
     if (result === 'cancel') { toast('Checkout canceled. You weren\'t charged.'); return; }
     if (result === 'success' && sessionId) {
       const r = await api('/api/checkout?action=verify', { method: 'POST', body: JSON.stringify({ sessionId }) }).catch(() => ({ ok: false, data: {} }));
-      if (r.ok && r.data.user) { account.user = r.data.user; renderAccount(); toast('🎉 Payment received. Personal is unlocked!'); const b = $('#acctPaid'); const rc = b.getBoundingClientRect(); confetti(rc.left + rc.width / 2, rc.top || 200); }
+      if (r.ok && r.data.user) { account.user = r.data.user; renderAccount(); track('paid'); toast('🎉 Payment received. Welcome, founding member!'); }
       else toast(r.data.error || 'We couldn\'t confirm the payment yet. Refresh in a moment.');
     }
-  };
-  loadMe().then(handleCheckoutReturn);
-
-  /* ---------- nav ---------- */
-  const header = $('.site-header'); const bar = $('.scroll-progress');
-  const toggle = $('.menu-toggle'); const menu = $('#mobile-menu');
-  toggle.addEventListener('click', () => { const open = menu.hidden; menu.hidden = !open; toggle.setAttribute('aria-expanded', open); });
-  $$('#mobile-menu a').forEach(a => a.addEventListener('click', () => { menu.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }));
-
-  /* ---------- scroll interactions ---------- */
-  const stage = $('#stage3d'); const cube = $('#cube');
-  let mx = 0, my = 0;
-  function onScroll() {
-    const y = window.scrollY; const max = document.documentElement.scrollHeight - innerHeight;
-    bar.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
-    header.classList.toggle('scrolled', y > 10);
-    if (!reduceMotion && current === 'home' && y < innerHeight * 1.2) stage.style.transform = `translateY(${y * 0.18}px) rotateY(${mx * 10 - y * 0.012}deg) rotateX(${-my * 8 + y * 0.01}deg)`;
-  }
-  addEventListener('scroll', onScroll, { passive: true });
-  if (!reduceMotion) $('.hero').addEventListener('mousemove', e => { const r = e.currentTarget.getBoundingClientRect(); mx = (e.clientX - r.left) / r.width - .5; my = (e.clientY - r.top) / r.height - .5; onScroll(); });
-
-  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } }), { threshold: .12 });
-  $$('.reveal').forEach(el => io.observe(el));
-
-  const stepIO = new IntersectionObserver(es => es.forEach(en => {
-    if (!en.isIntersecting) return;
-    const i = +en.target.dataset.step;
-    $$('.step').forEach(s => s.classList.toggle('active', s === en.target));
-    cube.style.transform = `rotateY(${-90 * i}deg) rotateX(${i === 1 ? 6 : -4}deg)`;
-  }), { rootMargin: '-45% 0px -45% 0px' });
-  $$('.step').forEach(s => stepIO.observe(s));
-
-
-  const shellIO = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove('pre'); shellIO.disconnect(); } }), { threshold: .15 });
-  shellIO.observe(shell);
-
-  // 3D tilt cards
-  if (!reduceMotion && matchMedia('(hover:hover)').matches) {
-    $$('[data-tilt]').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const r = card.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-        card.style.transform = `rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 14}deg) translateZ(10px)`;
-        card.style.setProperty('--mx', x * 100 + '%'); card.style.setProperty('--my', y * 100 + '%');
-      });
-      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-    });
   }
 
-  /* ---------- hero orb: 3D point sphere ---------- */
-  const cv = $('#orb'); const ctx = cv.getContext('2d');
-  const N = innerWidth < 700 ? 420 : 760; const pts = [];
-  for (let i = 0; i < N; i++) { const y = 1 - (i / (N - 1)) * 2; const r = Math.sqrt(1 - y * y); const th = Math.PI * (3 - Math.sqrt(5)) * i; pts.push([Math.cos(th) * r, y, Math.sin(th) * r]); }
-  let rot = 0, visible = true, raf;
-  function size() { if (!cv.clientWidth) return; const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-  size(); addEventListener('resize', size);
-  const draw = () => {
-    const w = cv.clientWidth, hgt = cv.clientHeight; ctx.clearRect(0, 0, w, hgt);
-    const R = Math.min(w, hgt) * .36, cx = w * .55, cy = hgt * .5;
-    const ay = rot + mx * .8, ax = .35 + my * .5;
-    const sy = Math.sin(ay), cyy = Math.cos(ay), sx = Math.sin(ax), cxx = Math.cos(ax);
-    for (const [x, y, z] of pts) {
-      let X = x * cyy - z * sy, Z = x * sy + z * cyy; let Y = y * cxx - Z * sx; Z = y * sx + Z * cxx;
-      const p = 2.6 / (2.6 - Z); const px = cx + X * R * p, py = cy + Y * R * p; const d = (Z + 1) / 2;
-      ctx.fillStyle = `rgba(${Math.round(72 + (150 - 72) * (1 - d))},${Math.round(191 - 60 * (1 - d))},${Math.round(206 + 20 * (1 - d))},${.12 + d * .55})`;
-      ctx.beginPath(); ctx.arc(px, py, .6 + d * 1.9, 0, Math.PI * 2); ctx.fill();
-    }
-  };
-  const loop = () => { rot += .0026; draw(); if (visible) raf = requestAnimationFrame(loop); };
-  if (reduceMotion) draw(); else {
-    new IntersectionObserver(([en]) => { visible = en.isIntersecting; cancelAnimationFrame(raf); if (visible) loop(); }).observe(cv);
+  /* ---------- your data ---------- */
+  function renderLedger() {
+    const bytes = new Blob([localStorage.getItem(KEY) || '']).size;
+    const u = account.user;
+    $('#ledger').innerHTML = [
+      ['On this device', `${state.tasks.length} task${state.tasks.length === 1 ? '' : 's'}, their steps and session times (${bytes.toLocaleString()} bytes in your browser)`],
+      ['On our servers', u ? `Your email (${esc(u.email)}), a hashed password, your plan, today's AI count, and anonymous counts like "session started". Never your task text.` : 'Nothing tied to you. Anonymous counts like "session started" with a random id, never your task text.'],
+      ['Sent to Anthropic (Claude)', 'Only the task or step text you send when you use ✨ AI. We don\'t store it.'],
+    ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
   }
+  $('#exportBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({ app: 'Comeback', exported: new Date().toISOString(), tasks: state.tasks, recoveries: state.recoveries }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `comeback-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  let wipeArmed = false;
+  $('#wipeBtn').addEventListener('click', () => {
+    if (!wipeArmed) { wipeArmed = true; $('#wipeBtn').textContent = 'Tap again to erase everything'; setTimeout(() => { wipeArmed = false; $('#wipeBtn').textContent = 'Erase data on this device'; }, 4000); return; }
+    const anonId = state.anonId; state = fresh(); state.anonId = anonId; state.migrated = true; save();
+    wipeArmed = false; $('#wipeBtn').textContent = 'Erase data on this device'; renderLedger(); toast('Erased from this device.');
+  });
+  $('#deleteForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const r = await api('/api/auth?action=delete', { method: 'POST', body: JSON.stringify({ password: $('#deletePw').value }) }).catch(() => ({ ok: false, data: {} }));
+    if (!r.ok) { $('#deleteMsg').textContent = r.data.error || 'Could not delete the account.'; return; }
+    $('#deletePw').value = ''; $('#deleteBox').open = false;
+    account.user = null; renderAccount(); toast('Your account was deleted.');
+  });
 
-  /* ---------- go ---------- */
-  renderToday(); renderGuard(); route(); onScroll();
+  /* ---------- init ---------- */
+  setMode('signup');
+  route();
+  track('visit');
+  loadMe().then(() => { handleCheckoutReturn(); if (current === 'now') renderNow(); });
+  if (state.session && byId(state.session.taskId)) { if (location.hash !== '#/now') location.hash = '#/now'; openFocus(); if (!state.session.paused) { pause(); distracted(true, Date.now() - (state.session.endsAt - state.session.total)); } }
 })();
