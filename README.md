@@ -1,6 +1,8 @@
 # Comeback (formerly ClinicGuard Personal)
 
-**Start what you're avoiding. Come back when you drift.**
+**Comeback Together: starting is easier together.**
+
+One small first step, a calm five-minute start, and (optionally) one trusted buddy who sees *that* you showed up, never *what* you're working on.
 Type the thing you keep putting off → get one tiny first step → do it in a short focus session → if you get distracted, one tap brings you back to the exact step.
 
 Live: https://clinicguard-site.vercel.app
@@ -54,7 +56,7 @@ Tables are created automatically. Demo account `demo@demo.com` / `password123!` 
 npm install
 npm test
 ```
-Runs the API tests against an in-memory Postgres with mocked Claude and Stripe (no keys needed): auth, demo account, AI validation, the parallel AI-limit check, refunds, events privacy, checkout ownership, account deletion.
+Runs the API tests (including 12 buddy privacy/consent/cooldown tests) against an in-memory Postgres with mocked Claude and Stripe (no keys needed): auth, demo account, AI validation, the parallel AI-limit check, refunds, events privacy, checkout ownership, account deletion.
 
 ## Useful Neon queries (validation metrics)
 
@@ -73,3 +75,24 @@ SELECT id, email, plan, created_at FROM users ORDER BY id;
 - No Stripe webhook yet: payment is confirmed when the buyer returns to the site.
 - The web app can't see or block other apps or sites. The browser extension is the next step.
 - Tasks don't sync across devices yet.
+
+## Comeback Together (buddy system)
+
+- **Invite** (`#/together`): creates a private, single-use link (`#/join/<token>`), valid 7 days. Only a SHA-256 hash of the token is stored.
+- **Join** (`#/join/<token>`): shows who invited you and exactly what each person can and can't see. Sharing is off unless you tick it.
+- **Sharing**: when on, your buddy sees "started" / "focusing now" / "showed up today". Turning it off deletes your focus status immediately. "Go solo" turns off sharing and encouragement.
+- **Encouragement**: "Still there? You've got this." and "Start together" are limited to one per 30 minutes per person, **enforced on the server**, and blocked if the receiver turned them off.
+- **"Someone saw you show up today."**: your buddy can acknowledge a session once.
+- **Disconnect** at any time; one buddy at a time.
+- Updates arrive by polling every 20 seconds (no live websocket).
+
+API: `api/together.js` (actions: status, preview, invite, revoke, accept, decline, disconnect, prefs, focus, ack, nudge, together, seen). Tables: `buddy_invites`, `buddy_links`, `focus_status`, `buddy_signals`, plus `users.display_name`, `users.share_status`, `users.allow_nudges` (all created automatically, additive only).
+
+## The experience
+
+- **Start** (`#/now`): "What's one thing you want to start?" → **Help me begin** (AI or quick first step) or **I already know my first step**.
+- **First step card**: Start now · Make it smaller · Try another step · Edit this step, plus the whole plan (editable, with times).
+- **Five-minute start**: calm animated orb that shifts color as time passes, pause/resume, end early (never punished), keep going, "I'm stuck", "I got distracted", buddy indicator.
+- **"You started. That counts."**: Keep going / Take a break / Finish for now, with an optional private "What helped you start today?".
+- **Progress** (`#/progress`): sentences instead of streaks, a 4-week constellation, things you're proud of, reflections, and a daily reminder you add to your own calendar (.ics). No push notifications.
+- First-launch intro (3 slides, skippable), dark mode (toggle or system), reduced-motion support, keyboard shortcuts, mobile bottom tabs.

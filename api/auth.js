@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
         }
         await L.createSession(req, res, rows[0].id);
       }
-      const rows = await L.q('SELECT id, email, plan, ai_day, ai_count FROM users WHERE email = $1', [email]);
+      const rows = await L.q('SELECT id, email, plan, ai_day, ai_count, display_name FROM users WHERE email = $1', [email]);
       return res.status(200).json({ user: L.publicUser(rows[0]) });
     }
 

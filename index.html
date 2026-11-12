@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f8faff" />
-  <meta name="description" content="Comeback helps you start the thing you keep putting off. One tiny first step, a short focus session, and a one-tap way back when you get distracted." />
-  <title>Comeback · Start what you're avoiding</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233f5596'/%3E%3Cpath d='M21.5 11.5A7 7 0 1 0 23 17' stroke='%23fff' stroke-width='2.8' fill='none' stroke-linecap='round'/%3E%3Cpath d='M22.6 6.8v5.3h-5.3' stroke='%23fff' stroke-width='2.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#fbfaff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f0d24" media="(prefers-color-scheme: dark)" />
+  <meta name="description" content="Comeback turns overwhelming tasks into tiny beginnings, with a little help from AI and someone you trust. Starting is easier together." />
+  <title>Comeback · Starting is easier together</title>
+  <script>try{var t=localStorage.getItem('comeback:theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%235b4bff'/%3E%3Cpath d='M21.5 11.5A7 7 0 1 0 23 17' stroke='%23fff' stroke-width='2.8' fill='none' stroke-linecap='round'/%3E%3Cpath d='M22.6 6.8v5.3h-5.3' stroke='%23fff' stroke-width='2.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Manrope:wght@600;700;800&family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -18,19 +20,26 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+  <div class="atmos" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
 
   <header class="site-header">
     <nav class="nav container" aria-label="Primary">
       <a href="#/home" class="brand" aria-label="Comeback home">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1fb6c1"/><stop offset="1" stop-color="#5b5fb8"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M21.5 11.5A7 7 0 1 0 23 17" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M22.6 6.8v5.3h-5.3" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d7bff"/><stop offset=".6" stop-color="#7c5cff"/><stop offset="1" stop-color="#ff8a6b"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M21.5 11.5A7 7 0 1 0 23 17" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M22.6 6.8v5.3h-5.3" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Comeback</span>
       </a>
-      <div class="nav-links">
-        <a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      <div class="nav-links site-only">
+        <a href="#how">How it works</a><a href="#together">Better Together</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      </div>
+      <div class="app-tabs app-only" role="tablist" aria-label="App">
+        <a href="#/now" data-tab="now">Start</a>
+        <a href="#/together" data-tab="together">Together <i class="dot" id="tabDot" hidden></i></a>
+        <a href="#/progress" data-tab="progress">Progress</a>
       </div>
       <div class="nav-right">
+        <button type="button" class="icon-btn" id="themeBtn" aria-label="Switch to dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
         <a href="#/account" class="nav-account" data-acct-label>Log in</a>
-        <a href="#/now" class="btn btn-dark btn-sm">Open app</a>
+        <a href="#/now" class="btn btn-primary btn-sm site-only">Open app</a>
       </div>
     </nav>
   </header>
@@ -40,55 +49,71 @@
   <div class="view" data-view="home">
     <section class="hero">
       <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="kicker">For anyone who keeps putting it off</span>
-          <h1>Start what you're avoiding.<br><span class="grad">Come back when you drift.</span></h1>
-          <p class="lead">Type the thing you've been putting off. Comeback turns it into one tiny first step, keeps you on it with a short session, and gets you right back to that step when you get distracted. No plan to manage. No guilt.</p>
+        <div class="hero-copy rise">
+          <span class="eyebrow"><i></i>Comeback Together</span>
+          <h1>The hardest part is starting.<br><span class="grad">You don't have to do it alone.</span></h1>
+          <p class="lead">Turn overwhelming tasks into tiny beginnings, with a little help from AI and someone you trust.</p>
           <form class="hero-form" id="heroForm" autocomplete="off">
-            <label for="heroTask" class="sr-only">What are you avoiding?</label>
-            <input class="input" id="heroTask" maxlength="300" placeholder="e.g. start my history essay" />
-            <button class="btn btn-dark" type="submit">Start →</button>
+            <label for="heroTask" class="sr-only">What's one thing you want to start?</label>
+            <input class="input" id="heroTask" maxlength="300" placeholder="What's one thing you want to start?" />
+            <button class="btn btn-primary" type="submit">Help me begin</button>
           </form>
-          <div class="chips" aria-label="Examples">
-            <button type="button" class="chip" data-fill="Start my history essay">Start my essay</button>
-            <button type="button" class="chip" data-fill="Study for my calculus exam">Study for an exam</button>
-            <button type="button" class="chip" data-fill="Reply to my landlord's email">Reply to that email</button>
-            <button type="button" class="chip" data-fill="Clean my room">Clean my room</button>
-          </div>
-          <p class="trust">✓ Free&nbsp;&nbsp;✓ No sign-up to try&nbsp;&nbsp;✓ Nothing moves without your OK</p>
+          <p class="trust"><span>Free</span><span>No sign-up to try</span><span>Your buddy never sees your tasks</span></p>
         </div>
-        <div class="hero-demo" aria-hidden="true">
-          <div class="demo-card">
-            <div class="demo-top"><span>History essay</span><span class="demo-pill">Step 1 of 4</span></div>
-            <p class="demo-step">Open the essay prompt and read only the first paragraph.</p>
-            <div class="demo-ring"><span>9:42</span></div>
-            <div class="demo-btns"><span class="demo-done">✓ Done with this step</span></div>
-            <div class="demo-sub"><span>I'm stuck</span><span>I got distracted</span></div>
+        <div class="hero-demo rise d2" aria-hidden="true">
+          <div class="demo-card glass">
+            <span class="demo-kick">Let's make starting easy.</span>
+            <p class="demo-step">Open your notes and review just one example problem.</p>
+            <div class="demo-meta">⏱ about 5 minutes</div>
+            <span class="demo-btn">Start now</span>
+            <div class="demo-row"><span>Make it smaller</span><span>Try another step</span></div>
           </div>
-          <div class="demo-toast">👋 Welcome back. You were on step 2.</div>
+          <div class="demo-buddy glass"><span class="av">S</span><span><b>Sam</b> saw you show up today</span><i class="heart">💜</i></div>
+          <div class="demo-orb"><i></i></div>
         </div>
       </div>
     </section>
 
     <section class="section" id="how" aria-labelledby="how-title">
       <div class="container">
-        <div class="section-head"><span class="kicker">How it works</span><h2 id="how-title">Three steps. That's the whole app.</h2></div>
+        <div class="section-head"><span class="kicker">How it works</span><h2 id="how-title">From "I can't face it" to "I started" in a minute.</h2></div>
         <div class="steps3">
-          <div class="s3"><b>1</b><h3>Name the thing</h3><p>Type what you're avoiding, in your own words. Add a time if it has one ("at 3pm", "by Friday"). You get one tiny first step you can do in under 2 minutes.</p></div>
-          <div class="s3"><b>2</b><h3>Do one step at a time</h3><p>Start a 5, 10 or 25 minute session. Only the current step is on screen. Stuck? One tap makes it smaller.</p></div>
-          <div class="s3"><b>3</b><h3>Drift? Come back.</h3><p>Got distracted or left the tab? Comeback brings you back to the exact step you were on, with a fresh short timer. No lecture.</p></div>
+          <div class="s3 glass tilt"><b>1</b><h3>Say what feels heavy</h3><p>In your own words. "Calc exam Thursday and I haven't studied." No setup, no categories, no colors to pick.</p></div>
+          <div class="s3 glass tilt"><b>2</b><h3>Get one tiny step</h3><p>AI finds a first step you can do in a few minutes. Too big? Make it smaller. Not right? Try another, or write your own.</p></div>
+          <div class="s3 glass tilt"><b>3</b><h3>Start for five minutes</h3><p>A calm, quiet space and a gentle timer. Stop early if you need to. You started. That counts.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="section alt" id="why" aria-labelledby="why-title">
-      <div class="container narrow">
-        <div class="section-head"><span class="kicker">Why not just ask a chatbot?</span><h2 id="why-title">A list doesn't get you started.</h2></div>
-        <div class="compare">
-          <div class="cmp-col"><h3>Asking a chatbot</h3><ul><li>Gives you a list, then you're on your own</li><li>Forgets where you stopped</li><li>Plans your whole day</li><li>Nothing happens when you drift</li><li>Planners silently shove missed things to tomorrow</li></ul></div>
-          <div class="cmp-col us"><h3>Comeback</h3><ul><li>Stays with you, one step on screen</li><li>Remembers the exact step you were on</li><li>Gets you through the next 10 minutes</li><li>"I got distracted" restarts you in one tap</li><li>Missed a meeting? You decide: it happened, reschedule, or drop it</li></ul></div>
+    <section class="section together-sec" id="together" aria-labelledby="tog-title">
+      <div class="container together-grid">
+        <div>
+          <span class="kicker">Better Together</span>
+          <h2 id="tog-title">Some things are easier with someone beside you.</h2>
+          <p class="lead">Invite one person you trust: a friend, sibling, roommate or partner. They're not your supervisor. They just get to see that you showed up.</p>
+          <div class="sees">
+            <div class="see yes"><h3>Your buddy can see</h3><ul><li>That you started a session, if you share it</li><li>That you're focusing right now</li><li>A simple "you showed up today"</li></ul></div>
+            <div class="see no"><h3>Your buddy never sees</h3><ul><li>What your task is</li><li>Your steps, notes or reflections</li><li>Anything you typed to the AI</li><li>Your history</li></ul></div>
+          </div>
         </div>
-        <p class="soon"><span class="pill">In development</span> A browser extension that notices when you open YouTube or Instagram during a session and offers to take you back to your step. You choose, and you can turn it off any time.</p>
+        <div class="pair glass" aria-hidden="true">
+          <div class="person"><span class="av big">H</span><b>You</b><small>taking a small step</small></div>
+          <div class="link"><i></i><i></i><i></i></div>
+          <div class="person"><span class="av big b2">S</span><b>Sam</b><small>"Still there? You've got this."</small></div>
+          <p class="pair-note">Someone saw you show up today.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="why-title">
+      <div class="container narrow">
+        <div class="section-head"><span class="kicker">What we believe</span><h2 id="why-title">Kind by design.</h2></div>
+        <div class="beliefs">
+          <div class="belief glass"><b>Starting matters more than finishing.</b><span>We measure beginnings, not perfection.</span></div>
+          <div class="belief glass"><b>No streaks to lose.</b><span>Miss a day? Nothing breaks. Come back whenever.</span></div>
+          <div class="belief glass"><b>Nothing moves without you.</b><span>Missed something? You choose what happens. Every change has Undo.</span></div>
+          <div class="belief glass"><b>Solo works perfectly too.</b><span>A buddy makes it nicer. It's never required.</span></div>
+        </div>
       </div>
     </section>
 
@@ -96,69 +121,119 @@
       <div class="container narrow">
         <div class="section-head"><span class="kicker">Pricing</span><h2 id="pricing-title">Free to start. Pay once if it helps.</h2></div>
         <div class="prices">
-          <div class="price">
+          <div class="price glass">
             <h3>Free</h3><div class="amt">$0</div>
-            <ul><li>Unlimited tasks and focus sessions</li><li>Quick first steps for any task</li><li>"I'm stuck" and "I got distracted" recovery</li><li>5 AI breakdowns a day with a free account</li></ul>
-            <a href="#/now" class="btn btn-outline">Start free</a>
+            <ul><li>Unlimited tasks and five-minute starts</li><li>One buddy, private sharing</li><li>Quick first steps for any task</li><li>5 AI first steps a day with a free account</li></ul>
+            <a href="#/now" class="btn btn-ghost">Start free</a>
           </div>
           <div class="price hl">
             <h3>Founding member</h3><div class="amt">$19 <small>once</small></div>
             <ul><li>For our first 500 members</li><li>100 AI actions a day (fair use)</li><li>The browser extension when it ships</li><li>Every v1 update, no subscription</li></ul>
-            <button type="button" class="btn btn-aqua" data-buy>Become a founding member</button>
+            <button type="button" class="btn btn-coral" data-buy>Become a founding member</button>
           </div>
         </div>
         <p class="fine">Secure checkout by Stripe. We never sell your data.</p>
       </div>
     </section>
 
-    <section class="section alt" id="faq" aria-labelledby="faq-title">
+    <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="container narrow">
         <div class="section-head"><span class="kicker">FAQ</span><h2 id="faq-title">Questions</h2></div>
         <div class="faq">
-          <details><summary>Does Comeback block apps or watch my phone?</summary><p>No. Comeback is a website. It can't see, block or monitor other apps or sites. During a session it only notices when you leave its own tab, so it can help you get back. A browser extension is in development; it will only act on sites you choose, and you can turn it off any time.</p></details>
-          <details><summary>What's stored, and where?</summary><p><b>On your device:</b> your tasks, steps and session history. <b>On our servers (only with an account):</b> your email, a hashed password, your plan, today's AI count, and anonymous usage counts like "a session started" (never what you typed). <b>Sent to Anthropic (Claude):</b> only the task or step text you send when you tap an AI button. See the <a href="privacy.html">privacy page</a>.</p></details>
-          <details><summary>What happens when I miss something?</summary><p>Nothing moves on its own. Missed items wait in a "Missed" list and you choose: it happened, do 5 minutes now, move it, or drop it. Missed a meeting with someone? Comeback gives you a ready first step to reschedule with them. Every change has an Undo.</p></details>
-          <details><summary>Do I need an account?</summary><p>No. Quick first steps, sessions and recovery work without one. A free account adds AI breakdowns written for your exact task.</p></details>
-          <details><summary>What happened to ClinicGuard?</summary><p>Comeback is the new name for ClinicGuard Personal. We focused on the one thing people told us they needed: actually starting. The old planner and security tools are kept in <a href="legacy/">Labs</a>.</p></details>
-          <details><summary>Who's building this?</summary><p>A Penn State student startup. It's early, and we'd love your feedback.</p></details>
+          <details><summary>What exactly does my buddy see?</summary><p>Only that you started a session (if you turn sharing on), that you're focusing right now, and a simple "showed up today." Never your task, steps, notes, reflections or AI text. Those never even reach our servers. You can pause sharing, go solo or disconnect at any time.</p></details>
+          <details><summary>Do I need a buddy?</summary><p>No. Comeback works fully on your own. A buddy is a nice extra, never a requirement, and they never need to be online.</p></details>
+          <details><summary>Will my buddy spam me?</summary><p>They can send one gentle "Still there? You've got this." at most every 30 minutes, and you can turn encouragement off completely.</p></details>
+          <details><summary>What happens when I miss something?</summary><p>Nothing moves on its own. Missed items wait for you to choose: it happened, do 5 minutes now, move it, or drop it. Every change has an Undo.</p></details>
+          <details><summary>What's stored, and where?</summary><p><b>On your device:</b> tasks, steps, sessions and reflections. <b>On our servers (with an account):</b> email, hashed password, plan, first name, sharing settings, whether you're focusing (only while sharing with a buddy), and anonymous usage counts. <b>Sent to Anthropic (Claude):</b> only the task text you send when you ask for AI help. See the <a href="privacy.html">privacy page</a>.</p></details>
+          <details><summary>Does Comeback block apps?</summary><p>No. It's a website, so it can't see or block other apps. A browser extension is in development and will only act on sites you choose.</p></details>
+          <details><summary>What happened to ClinicGuard?</summary><p>Comeback is the new name for ClinicGuard Personal. The old tools are kept in <a href="legacy/">Labs</a>.</p></details>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="container narrow cta">
-        <h2>What are you avoiding right now?</h2>
-        <a href="#/now" class="btn btn-dark btn-lg">Start in 2 minutes →</a>
+      <div class="container narrow cta glass">
+        <h2>What's one thing you want to start?</h2>
+        <p class="muted">You don't have to finish everything. Just take the first step.</p>
+        <a href="#/now" class="btn btn-primary btn-lg">Help me begin</a>
       </div>
     </section>
+    <footer class="footer">
+      <div class="container foot">
+        <span>© 2026 Comeback · formerly ClinicGuard Personal · a Penn State student startup</span>
+        <span><a href="privacy.html">Privacy</a> · <a href="legacy/">Labs</a></span>
+      </div>
+    </footer>
   </div>
 
-  <!-- ===================== APP: NOW ===================== -->
+  <!-- ===================== APP: START ===================== -->
   <section class="view app" data-view="now" hidden aria-labelledby="nowTitle">
     <div class="container app-wrap">
-      <div class="now-head">
-        <span class="kicker" id="nowDate"></span>
-        <h1 id="nowTitle">What are you avoiding?</h1>
+      <div class="now-head rise">
+        <span class="greet" id="greet">Hey, welcome back.</span>
+        <h1 id="nowTitle">What's one thing you want to start?</h1>
+        <p class="sub">You don't have to finish everything. Just take the first step.</p>
       </div>
 
-      <form id="askForm" class="composer" autocomplete="off">
-        <label for="askInput" class="sr-only">What are you avoiding? You can add a time, like "at 3pm".</label>
-        <input class="input" id="askInput" maxlength="300" placeholder="What are you avoiding?" enterkeyhint="go" />
-        <button class="btn btn-dark composer-btn" type="submit" id="askBtn" aria-label="Add and break it down"><span class="cb-label">Break it down</span><span class="cb-plus" aria-hidden="true">＋</span></button>
-      </form>
-
-      <div class="first-run" id="firstRun">
-        <div class="chips">
-          <button type="button" class="chip" data-ask="Start my history essay">✍️ Essay</button>
-          <button type="button" class="chip" data-ask="Study for my calculus exam">📚 Exam</button>
-          <button type="button" class="chip" data-ask="Finish my programming assignment">💻 Assignment</button>
-          <button type="button" class="chip" data-ask="Meeting with my advisor tomorrow at 2pm">📅 Meeting</button>
-          <button type="button" class="chip" data-ask="Clean my room">🧺 Room</button>
+      <form id="askForm" class="composer glass rise d1" autocomplete="off">
+        <label for="askInput" class="sr-only">What's on your mind?</label>
+        <textarea class="input" id="askInput" rows="1" maxlength="300" placeholder="What's on your mind?" enterkeyhint="go"></textarea>
+        <div class="composer-row">
+          <button type="button" class="link-btn" id="knowBtn" aria-expanded="false">I already know my first step</button>
+          <button class="btn btn-primary" type="submit" id="askBtn">Help me begin</button>
         </div>
+        <div class="know" id="knowBox" hidden>
+          <label for="knowInput" class="sr-only">Your first step</label>
+          <input class="input" id="knowInput" maxlength="140" placeholder="My first step is…" />
+          <button type="button" class="btn btn-ghost" id="knowGo">Start now</button>
+        </div>
+      </form>
+      <div class="chips rise d2" id="firstRun">
+        <button type="button" class="chip" data-ask="Study for my exam">Study for my exam</button>
+        <button type="button" class="chip" data-ask="Clean my room">Clean my room</button>
+        <button type="button" class="chip" data-ask="Start my assignment">Start my assignment</button>
+        <button type="button" class="chip" data-ask="Reply to an important email">Reply to an email</button>
+        <button type="button" class="chip" data-ask="Work on my project">Work on my project</button>
       </div>
       <p class="ask-note" id="askNote"></p>
 
+      <a href="#/together" class="buddy-strip glass" id="buddyStrip" hidden></a>
       <button type="button" class="upnext" id="upNext" hidden></button>
+
+      <!-- Moment B: one clear first step -->
+      <div class="card first glass" id="planCard" hidden aria-live="polite">
+        <div class="first-top">
+          <span class="kicker" id="firstKick">Let's make starting easy.</span>
+          <span class="badge" id="planBadge"></span>
+        </div>
+        <label for="planTitle" class="sr-only">Task</label>
+        <input class="plan-title" id="planTitle" maxlength="80" />
+        <div class="first-step" id="firstStepWrap">
+          <p class="first-text" id="firstText"></p>
+          <textarea class="input first-edit" id="firstEdit" rows="2" maxlength="140" hidden aria-label="Edit this step"></textarea>
+          <span class="first-meta" id="firstMeta">⏱ about 5 minutes</span>
+        </div>
+        <div class="skeleton" id="firstSkel" hidden aria-label="Finding a first step"><i></i><i></i><i class="short"></i></div>
+        <button class="btn btn-primary btn-lg btn-start" id="startBtn">Start now</button>
+        <div class="first-actions">
+          <button type="button" class="pill-btn" id="smallerBtn">Make it smaller</button>
+          <button type="button" class="pill-btn" id="anotherBtn">Try another step</button>
+          <button type="button" class="pill-btn" id="editBtn">Edit this step</button>
+        </div>
+        <details class="whole" id="wholePlan">
+          <summary>See the whole plan <span id="stepCount"></span></summary>
+          <div class="when-row">
+            <label class="when"><span aria-hidden="true">⏰</span><span class="sr-only">Time</span><input type="datetime-local" id="planWhen"></label>
+            <button type="button" class="link-btn" id="clearWhen">No time</button>
+          </div>
+          <p class="plan-tip" id="planTip"></p>
+          <ol class="steps" id="planSteps"></ol>
+          <div class="plan-foot">
+            <button type="button" class="link-btn" id="addStep">+ Add a step</button>
+            <button type="button" class="link-btn quiet" id="dropBtn">Drop this task</button>
+          </div>
+        </details>
+      </div>
 
       <div class="card missed" id="missedCard" hidden>
         <h2>Missed <span class="count" id="missedCount"></span></h2>
@@ -166,57 +241,152 @@
         <ul id="missedList"></ul>
       </div>
 
-      <div class="card resume" id="resume" hidden>
-        <span class="kicker">Pick up where you left off</span>
-        <h2 id="resumeTitle"></h2>
-        <p id="resumeStep"></p>
-        <div class="row"><button class="btn btn-dark" id="resumeBtn">Resume · 10 min</button><button class="btn btn-ghost" id="resumeLater">Not now</button></div>
-      </div>
-
-      <div class="card plan" id="planCard" hidden aria-live="polite">
-        <div class="plan-head">
-          <label for="planTitle" class="sr-only">Task</label>
-          <input class="plan-title" id="planTitle" maxlength="80" />
-          <span class="badge" id="planBadge"></span>
-        </div>
-        <div class="when-row">
-          <label class="when"><span aria-hidden="true">⏰</span><span class="sr-only">Time</span><input type="datetime-local" id="planWhen"></label>
-          <button type="button" class="link-btn" id="clearWhen">No time</button>
-        </div>
-        <p class="plan-tip" id="planTip"></p>
-        <ol class="steps" id="planSteps"></ol>
-        <button type="button" class="link-btn" id="addStep">+ Add a step</button>
-        <div class="start-row">
-          <div class="seg-mini" role="radiogroup" aria-label="Session length">
-            <button type="button" data-min="5" role="radio" aria-checked="false">5 min</button>
-            <button type="button" data-min="10" role="radio" aria-checked="true" class="on">10 min</button>
-            <button type="button" data-min="25" role="radio" aria-checked="false">25 min</button>
-          </div>
-          <button class="btn btn-dark btn-lg" id="startBtn">Start step 1 →</button>
-        </div>
-        <div class="plan-foot">
-          <button type="button" class="link-btn" id="smallerBtn">Make step 1 smaller</button>
-          <button type="button" class="link-btn quiet" id="dropBtn">Drop this task</button>
-        </div>
-      </div>
-
-      <div class="card list" id="listCard" hidden>
-        <h2>Your list <span class="hint" id="listHint">Drag ⋮⋮ to reorder</span></h2>
+      <div class="card list glass" id="listCard" hidden>
+        <h2>Recently <span class="hint" id="listHint">Drag ⋮⋮ to reorder</span></h2>
         <ul id="taskList" class="tasks"></ul>
       </div>
+    </div>
+  </section>
 
-      <div class="stats" id="stats" hidden></div>
+  <!-- ===================== TOGETHER ===================== -->
+  <section class="view app" data-view="together" hidden aria-labelledby="togTitle">
+    <div class="container app-wrap">
+      <div class="now-head rise">
+        <span class="greet">Comeback Together</span>
+        <h1 id="togTitle">Better Together</h1>
+        <p class="sub">Some things are easier with someone beside you.</p>
+      </div>
+
+      <div class="card glass" id="togLogin" hidden>
+        <h2>One trusted person. Zero pressure.</h2>
+        <p class="muted">Create a free account to invite a buddy. They'll only ever see that you showed up, never what you're working on.</p>
+        <div class="row"><a href="#/account" class="btn btn-primary" id="togLoginBtn">Create a free account</a></div>
+      </div>
+
+      <div class="card glass" id="togLoading"><div class="skeleton"><i></i><i class="short"></i></div></div>
+
+      <div id="togMain" hidden>
+        <div class="card glass" id="nameCard" hidden>
+          <h2>What should your buddy call you?</h2>
+          <form id="nameForm" class="inline-form">
+            <label for="nameInput" class="sr-only">First name or nickname</label>
+            <input class="input" id="nameInput" maxlength="30" placeholder="First name or nickname" autocomplete="given-name" />
+            <button class="btn btn-primary" type="submit">Save</button>
+          </form>
+        </div>
+
+        <div class="card glass buddy-card" id="buddyCard" hidden>
+          <div class="bc-head">
+            <span class="av big" id="buddyAv">S</span>
+            <div><h2 id="buddyName">Sam</h2><p class="bc-status" id="buddyStatus"></p></div>
+          </div>
+          <div class="bc-actions">
+            <button class="btn btn-primary" id="togetherBtn">Start together</button>
+            <button class="btn btn-ghost" id="nudgeBtn">Send encouragement</button>
+            <button class="btn btn-ghost" id="ackBtn" hidden>I saw you show up 💜</button>
+          </div>
+          <p class="muted small" id="nudgeNote"></p>
+        </div>
+
+        <div class="card glass" id="inviteCard" hidden>
+          <h2>Invite someone you trust</h2>
+          <p class="muted">A friend, sibling, roommate or partner. One person, private link, no pressure.</p>
+          <div id="inviteIdle"><button class="btn btn-primary" id="inviteBtn">Create a private invite link</button></div>
+          <div id="inviteReady" hidden>
+            <div class="linkbox"><input class="input" id="inviteUrl" readonly aria-label="Invite link" /><button class="btn btn-ghost" id="copyBtn">Copy</button></div>
+            <div class="row"><button class="btn btn-primary" id="shareBtn">Share…</button><button class="btn btn-ghost" id="revokeBtn">Cancel invite</button></div>
+            <p class="muted small" id="inviteNote">Only someone with this link can join. It works once and expires in 7 days.</p>
+          </div>
+          <div id="invitePending" hidden>
+            <p class="pending"><i class="pulse"></i>Invite waiting to be accepted</p>
+            <div class="row"><button class="btn btn-ghost" id="newLinkBtn">Make a new link</button><button class="btn btn-ghost" id="revokeBtn2">Cancel invite</button></div>
+          </div>
+        </div>
+
+        <div class="card glass" id="prefsCard" hidden>
+          <h2>Your sharing</h2>
+          <label class="switch"><input type="checkbox" id="shareToggle"><span class="track"><i></i></span><span class="sw-text"><b>Let <span class="bn">my buddy</span> see when I start</b><small>Only "started" and "focusing now". Never what.</small></span></label>
+          <label class="switch"><input type="checkbox" id="nudgeToggle"><span class="track"><i></i></span><span class="sw-text"><b>Allow encouragement</b><small>At most one gentle message every 30 minutes.</small></span></label>
+          <div class="row">
+            <button class="btn btn-ghost" id="soloBtn">Go solo for now</button>
+            <button class="btn btn-ghost danger" id="disconnectBtn" hidden>Disconnect</button>
+          </div>
+        </div>
+
+        <div class="card glass privacy-card">
+          <div class="sees compact">
+            <div class="see yes"><h3>Your buddy can see</h3><ul><li>That you started, if you share</li><li>That you're focusing now</li><li>"Showed up today"</li></ul></div>
+            <div class="see no"><h3>Never</h3><ul><li>Your task or steps</li><li>Notes and reflections</li><li>AI conversations</li><li>Your history</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== JOIN (invite link) ===================== -->
+  <section class="view app" data-view="join" hidden aria-labelledby="joinTitle">
+    <div class="container app-wrap">
+      <div class="card glass join-card">
+        <div class="join-orb" aria-hidden="true"><span class="av big" id="joinAv">?</span></div>
+        <h1 id="joinTitle">Checking your invite…</h1>
+        <p class="muted" id="joinSub"></p>
+        <div id="joinBody" hidden>
+          <div class="sees compact">
+            <div class="see yes"><h3>You'll be able to see</h3><ul><li>When <span class="jn">they</span> start, if they share</li><li>That they showed up today</li></ul></div>
+            <div class="see no"><h3>Nobody sees</h3><ul><li>Anyone's tasks or steps</li><li>Notes, reflections, AI text</li></ul></div>
+          </div>
+          <div id="joinNeedLogin" hidden>
+            <p class="muted">You'll need a free account to accept. It takes 20 seconds.</p>
+            <a href="#/account" class="btn btn-primary btn-lg full" id="joinLogin">Create account to accept</a>
+          </div>
+          <form id="joinForm" hidden>
+            <label class="fld"><span>What should they call you?</span><input class="input" id="joinName" maxlength="30" placeholder="First name or nickname" autocomplete="given-name"></label>
+            <label class="switch"><input type="checkbox" id="joinShare"><span class="track"><i></i></span><span class="sw-text"><b>Let <span class="jn">them</span> see when I start too</b><small>Optional. You can change it anytime.</small></span></label>
+            <button class="btn btn-primary btn-lg full" type="submit" id="joinAccept">Accept invite</button>
+            <p class="form-msg" id="joinMsg" role="alert"></p>
+          </form>
+          <div class="row center"><button class="link-btn" id="joinDecline">Decline</button><a class="link-btn quiet" href="#/now">Maybe later</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PROGRESS ===================== -->
+  <section class="view app" data-view="progress" hidden aria-labelledby="progTitle">
+    <div class="container app-wrap">
+      <div class="now-head rise">
+        <span class="greet">Evidence of effort</span>
+        <h1 id="progTitle">Your beginnings</h1>
+        <p class="sub">No streaks. No scores. Just proof that you keep showing up.</p>
+      </div>
+      <div class="card glass prog-lines" id="progLines"></div>
+      <div class="card glass">
+        <h2>The last four weeks</h2>
+        <div class="constellation" id="constellation" role="img" aria-label="Days you started something in the last four weeks"></div>
+        <p class="muted small">Each light is a day you started something. Brighter means more beginnings.</p>
+      </div>
+      <div class="card glass" id="proudCard" hidden><h2>Things you're proud of</h2><ul class="proud" id="proudList"></ul></div>
+      <div class="card glass" id="reflCard" hidden><h2>What helped you start</h2><ul class="refl" id="reflList"></ul></div>
+      <div class="card glass">
+        <h2>A gentle daily reminder</h2>
+        <p class="muted">Adds one quiet reminder to your own calendar app. We don't send notifications or emails.</p>
+        <form class="inline-form" id="remindForm">
+          <label for="remindTime" class="sr-only">Reminder time</label>
+          <input class="input" type="time" id="remindTime" value="19:00" />
+          <button class="btn btn-ghost" type="submit">Add to my calendar</button>
+        </form>
+      </div>
     </div>
   </section>
 
   <!-- ===================== ACCOUNT ===================== -->
   <section class="view app" data-view="account" hidden>
     <div class="container app-wrap">
-      <div class="card acct">
+      <div class="card glass acct">
         <div id="authBox">
           <span class="kicker">Your account</span>
           <h1 id="authTitle">Create your free account</h1>
-          <p class="muted">Adds AI breakdowns written for your exact task. Your account holds only your email, your plan and today's AI count. Your tasks stay on this device.</p>
+          <p class="muted">Adds AI first steps and lets you invite a buddy. Your account holds only your email, your plan and your sharing choices. Your tasks stay on this device.</p>
           <div class="seg" role="tablist" aria-label="Account">
             <button type="button" role="tab" data-mode="signup" aria-selected="true" class="on">Create account</button>
             <button type="button" role="tab" data-mode="login" aria-selected="false">Log in</button>
@@ -224,7 +394,7 @@
           <form id="authForm" novalidate>
             <label class="fld"><span>Email</span><input class="input" type="email" id="authEmail" autocomplete="email" placeholder="you@school.edu" required></label>
             <label class="fld"><span>Password</span><input class="input" type="password" id="authPw" autocomplete="new-password" placeholder="At least 8 characters" required minlength="8"></label>
-            <button class="btn btn-dark btn-lg full" type="submit" id="authBtn">Create free account</button>
+            <button class="btn btn-primary btn-lg full" type="submit" id="authBtn">Create free account</button>
             <p class="form-msg" id="authMsg" role="alert" aria-live="polite"></p>
           </form>
         </div>
@@ -237,26 +407,26 @@
           </div>
           <div class="upgrade" id="acctUpgrade">
             <div><b>Founding member · $19 once</b><span>100 AI actions a day, the browser extension when it ships, every v1 update.</span></div>
-            <button class="btn btn-aqua" type="button" data-buy>Upgrade with Stripe</button>
+            <button class="btn btn-coral" type="button" data-buy>Upgrade with Stripe</button>
           </div>
           <p class="paid" id="acctPaid" hidden>✅ You're a founding member. Thank you for backing a student startup!</p>
-          <div class="row"><a href="#/now" class="btn btn-dark">Open the app</a><button class="btn btn-outline" type="button" id="logoutBtn">Log out</button></div>
+          <div class="row"><a href="#/now" class="btn btn-primary">Open the app</a><button class="btn btn-ghost" type="button" id="logoutBtn">Log out</button></div>
         </div>
       </div>
 
-      <div class="card data">
+      <div class="card glass data">
         <h2>Your data</h2>
         <table class="ledger"><tbody id="ledger"></tbody></table>
         <div class="row">
-          <button class="btn btn-outline" type="button" id="exportBtn">Export my data</button>
-          <button class="btn btn-outline danger" type="button" id="wipeBtn">Erase data on this device</button>
+          <button class="btn btn-ghost" type="button" id="exportBtn">Export my data</button>
+          <button class="btn btn-ghost danger" type="button" id="wipeBtn">Erase data on this device</button>
         </div>
         <details class="delete" id="deleteBox" hidden>
           <summary>Delete my account</summary>
           <form id="deleteForm" novalidate>
-            <p class="muted">This permanently deletes your account from our database. Tasks on this device are not touched.</p>
+            <p class="muted">This permanently deletes your account and buddy connection from our database. Tasks on this device are not touched.</p>
             <label class="fld"><span>Confirm your password</span><input class="input" type="password" id="deletePw" autocomplete="current-password" required></label>
-            <button class="btn btn-outline danger" type="submit">Delete my account forever</button>
+            <button class="btn btn-ghost danger" type="submit">Delete my account forever</button>
             <p class="form-msg" id="deleteMsg" role="alert"></p>
           </form>
         </details>
@@ -266,57 +436,93 @@
   </section>
   </main>
 
-  <footer class="footer">
-    <div class="container foot">
-      <span>© 2026 Comeback · formerly ClinicGuard Personal · a Penn State student startup</span>
-      <span><a href="privacy.html">Privacy</a> · <a href="legacy/">Labs</a></span>
-    </div>
-  </footer>
+  <!-- mobile thumb navigation -->
+  <nav class="bottom-tabs app-only" aria-label="App">
+    <a href="#/now" data-tab="now"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Start</a>
+    <a href="#/together" data-tab="together"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.5" cy="9" r="3"/><circle cx="15.5" cy="9" r="3"/><path d="M3.5 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M10.5 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/></svg>Together<i class="dot" id="tabDot2" hidden></i></a>
+    <a href="#/progress" data-tab="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="16" r="1.6"/><circle cx="12" cy="10" r="1.6"/><circle cx="18" cy="6" r="1.6"/><path d="M6 16l6-6 6-4" opacity=".5"/></svg>Progress</a>
+    <a href="#/account" data-tab="account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>You</a>
+  </nav>
 
-  <!-- ===================== FOCUS MODE ===================== -->
+  <!-- ===================== FOCUS: THE FIVE-MINUTE START ===================== -->
   <div class="focus" id="focus" role="dialog" aria-modal="true" aria-labelledby="fStep" hidden>
+    <div class="focus-sky" aria-hidden="true"></div>
     <div class="focus-top">
-      <span class="f-task" id="fTask"></span>
-      <button class="btn btn-ghost btn-sm" id="fStop">Stop for now</button>
+      <span class="witness" id="fWitness">Solo</span>
+      <button class="btn btn-quiet btn-sm" id="fEnd">End early</button>
     </div>
     <div class="focus-main" id="fMain">
-      <span class="f-count" id="fCount"></span>
+      <span class="f-task" id="fTask"></span>
       <p class="f-step" id="fStep"></p>
-      <div class="ring" id="fRing" role="timer" aria-live="off"><span id="fTime">10:00</span><button class="ring-pause" id="fPause" aria-label="Pause timer">❚❚</button></div>
-      <button class="btn btn-aqua btn-lg" id="fDone">✓ Done with this step</button>
-      <div class="f-sub">
-        <button class="btn btn-ghost" id="fStuck">I'm stuck</button>
-        <button class="btn btn-ghost" id="fDistracted">I got distracted</button>
+      <div class="orb" id="fRing" role="timer" aria-live="off">
+        <i class="orb-glow"></i><i class="orb-core"></i>
+        <svg class="orb-ring" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92"/><circle class="arc" id="fArc" cx="100" cy="100" r="92"/></svg>
+        <span id="fTime">5:00</span>
       </div>
+      <div class="f-controls">
+        <button class="btn btn-quiet" id="fPause" aria-label="Pause timer">Pause</button>
+        <button class="btn btn-light btn-lg" id="fDone">✓ Done with this step</button>
+      </div>
+      <div class="f-sub">
+        <button class="btn btn-quiet" id="fStuck">I'm stuck</button>
+        <button class="btn btn-quiet" id="fDistracted">I got distracted</button>
+      </div>
+      <span class="f-count" id="fCount"></span>
       <div class="dots" id="fDots" aria-hidden="true"></div>
-      <p class="kbd-hint" aria-hidden="true"><kbd>Enter</kbd> done · <kbd>Space</kbd> pause · <kbd>S</kbd> stuck · <kbd>D</kbd> distracted · <kbd>Esc</kbd> stop</p>
+      <p class="kbd-hint" aria-hidden="true"><kbd>Enter</kbd> done · <kbd>Space</kbd> pause · <kbd>S</kbd> stuck · <kbd>D</kbd> distracted · <kbd>Esc</kbd> end</p>
     </div>
     <div class="focus-panel" id="fRecover" hidden>
-      <h2>Welcome back 👋</h2>
+      <h2 class="serif">Welcome back.</h2>
       <p id="fRecoverText"></p>
-      <button class="btn btn-aqua btn-lg" id="fRestart">Restart with 5 minutes</button>
-      <div class="f-sub"><button class="btn btn-ghost" id="fKeep">Keep my timer going</button><button class="btn btn-ghost" id="fRecoverStop">Stop for now</button></div>
+      <button class="btn btn-light btn-lg" id="fRestart">Restart with 5 minutes</button>
+      <div class="f-sub"><button class="btn btn-quiet" id="fKeep">Keep my timer going</button><button class="btn btn-quiet" id="fRecoverStop">Finish for now</button></div>
     </div>
-    <div class="focus-panel" id="fTimeup" hidden>
-      <h2>Time's up.</h2>
-      <p>You showed up and worked on it. That's the hard part.</p>
-      <button class="btn btn-aqua btn-lg" id="fUpDone">✓ This step is done</button>
-      <div class="f-sub"><button class="btn btn-ghost" id="fMore">5 more minutes</button><button class="btn btn-ghost" id="fUpStop">Stop for now</button></div>
+    <!-- Moment E -->
+    <div class="focus-panel" id="fDoneP" hidden>
+      <div class="bloom" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h2 class="serif" id="fDoneTitle">You started. That counts.</h2>
+      <p id="fDoneText"></p>
+      <button class="btn btn-light btn-lg" id="fKeepGoing">Keep going · 5 more min</button>
+      <div class="f-sub"><button class="btn btn-quiet" id="fBreak">Take a break</button><button class="btn btn-quiet" id="fFinish">Finish for now</button></div>
+      <form class="reflect" id="reflectForm" hidden>
+        <label for="reflectInput">What helped you start today? <small>(optional, private)</small></label>
+        <div class="inline-form"><input class="input" id="reflectInput" maxlength="200" placeholder="e.g. making the step tiny" /><button class="btn btn-quiet" type="submit">Save</button></div>
+        <button type="button" class="link-btn light" id="reflectSkip">Skip</button>
+      </form>
     </div>
-    <div class="focus-panel" id="fFinished" hidden>
-      <h2>Done. 🎉</h2>
-      <p id="fFinishedText"></p>
-      <button class="btn btn-dark btn-lg" id="fBack">Back to my list</button>
+  </div>
+
+  <!-- Moment A: first launch -->
+  <div class="intro" id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="introTitle">
+    <div class="intro-card glass">
+      <div class="intro-slides">
+        <div class="slide on"><span class="intro-ico">🌱</span><h2 id="introTitle" class="serif">Starting is the hardest part.</h2><p>So we only help with that. Not your whole life. Just the first step.</p></div>
+        <div class="slide"><span class="intro-ico">✨</span><h2 class="serif">Big task in. Tiny step out.</h2><p>Tell us what feels heavy. We'll find something you can do in five minutes.</p></div>
+        <div class="slide"><span class="intro-ico">💜</span><h2 class="serif">Better together, if you want.</h2><p>Invite one person you trust to see that you showed up. Never what you're working on.</p></div>
+      </div>
+      <div class="intro-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+      <div class="row center"><button class="btn btn-primary btn-lg" id="introNext">Next</button></div>
+      <button class="link-btn quiet" id="introSkip">Skip</button>
+    </div>
+  </div>
+
+  <!-- Moment D: someone saw you -->
+  <div class="seen" id="seenMoment" hidden role="status" aria-live="polite">
+    <div class="seen-card glass">
+      <div class="seen-glow" aria-hidden="true"></div>
+      <p class="serif" id="seenTitle">Someone saw you show up today.</p>
+      <p class="muted" id="seenFrom">Sam</p>
+      <div class="row center" id="seenActions"><button class="btn btn-primary" id="seenOk">Thank you</button></div>
     </div>
   </div>
 
   <!-- AI consent -->
   <div class="modal-backdrop" id="aiConsent" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
       <h2 id="consentTitle">Quick heads-up before AI</h2>
-      <p>To write steps for your task, we send <b>only the task or step text</b> to Claude, an AI by Anthropic. Your other tasks and history are never sent, and we don't store what you send.</p>
+      <p>To find your first step, we send <b>only what you typed</b> to Claude, an AI by Anthropic. Your other tasks and history are never sent, and we don't store what you send.</p>
       <label class="remember"><input type="checkbox" id="aiRemember" checked> Don't ask again on this device</label>
-      <div class="row"><button class="btn btn-dark" id="aiAgree">OK, continue</button><button class="btn btn-ghost" id="aiCancel">Use quick steps instead</button></div>
+      <div class="row"><button class="btn btn-primary" id="aiAgree">OK, continue</button><button class="btn btn-ghost" id="aiCancel">Use quick steps instead</button></div>
     </div>
   </div>
 

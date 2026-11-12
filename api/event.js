@@ -7,6 +7,8 @@ const L = require('./_lib');
 const ALLOWED = new Set([
   'visit', 'task_created', 'ai_breakdown', 'quick_steps', 'session_started', 'step_done', 'stuck',
   'distracted', 'recovered', 'task_finished', 'signup', 'login', 'checkout_started', 'paid',
+  'own_step', 'another_step', 'session_ended_early', 'kept_going', 'reflection', 'onboarded',
+  'buddy_invite', 'buddy_joined', 'nudge_sent', 'ack_sent', 'together_started', 'calendar_reminder',
 ]);
 
 module.exports = async function handler(req, res) {

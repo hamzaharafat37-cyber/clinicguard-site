@@ -80,12 +80,52 @@ function ensureSchema() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )`);
       await q(`DELETE FROM sessions WHERE expires_at < now()`);
+      // Comeback Together (buddy system). Additive changes only.
+      await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT`);
+      await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS share_status BOOLEAN NOT NULL DEFAULT false`);
+      await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allow_nudges BOOLEAN NOT NULL DEFAULT true`);
+      await q(`CREATE TABLE IF NOT EXISTS buddy_invites (
+        id BIGSERIAL PRIMARY KEY,
+        token_hash TEXT UNIQUE NOT NULL,
+        inviter_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        expires_at TIMESTAMPTZ NOT NULL,
+        responded_at TIMESTAMPTZ,
+        accepted_by INT REFERENCES users(id) ON DELETE SET NULL
+      )`);
+      await q(`CREATE TABLE IF NOT EXISTS buddy_links (
+        id BIGSERIAL PRIMARY KEY,
+        user_a INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_b INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        ended_at TIMESTAMPTZ
+      )`);
+      await q(`CREATE TABLE IF NOT EXISTS focus_status (
+        user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        focusing BOOLEAN NOT NULL DEFAULT false,
+        session_id TEXT,
+        started_at TIMESTAMPTZ,
+        ends_at TIMESTAMPTZ,
+        ended_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`);
+      await q(`CREATE TABLE IF NOT EXISTS buddy_signals (
+        id BIGSERIAL PRIMARY KEY,
+        kind TEXT NOT NULL,
+        from_user INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        to_user INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        session_id TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        seen_at TIMESTAMPTZ
+      )`);
       // Demo account for graders: always exists, full paid access, no email verification.
       await q(
         `INSERT INTO users (email, password_hash, plan, paid_at) VALUES ($1, $2, 'personal', now())
          ON CONFLICT (email) DO UPDATE SET plan = 'personal', password_hash = EXCLUDED.password_hash`,
         [DEMO_EMAIL, hashPassword(DEMO_PASSWORD)]
       );
+      await q(`UPDATE users SET display_name = 'Demo' WHERE email = $1 AND display_name IS NULL`, [DEMO_EMAIL]);
     })().catch(err => { ready = null; throw err; });
   }
   return ready;
@@ -130,7 +170,7 @@ async function currentUser(req) {
   const token = readCookie(req, COOKIE);
   if (!token) return null;
   const rows = await q(
-    `SELECT u.id, u.email, u.plan, u.ai_day, u.ai_count, u.created_at FROM sessions s JOIN users u ON u.id = s.user_id
+    `SELECT u.id, u.email, u.plan, u.ai_day, u.ai_count, u.created_at, u.display_name, u.share_status, u.allow_nudges FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = $1 AND s.expires_at > now()`,
     [sha(token)]
   );
@@ -146,7 +186,7 @@ const aiLimit = u => (u.plan === 'personal' ? PAID_AI_PER_DAY : FREE_AI_PER_DAY)
 function publicUser(u) {
   if (!u) return null;
   const paid = u.plan === 'personal';
-  return { email: u.email, plan: paid ? 'personal' : 'free', aiLimit: aiLimit(u), aiLeft: Math.max(0, aiLimit(u) - aiUsedToday(u)) };
+  return { email: u.email, name: u.display_name || null, plan: paid ? 'personal' : 'free', aiLimit: aiLimit(u), aiLeft: Math.max(0, aiLimit(u) - aiUsedToday(u)) };
 }
 
 // Atomically reserve one AI action for today. Returns remaining count, or null if the daily limit is reached.
@@ -219,5 +259,5 @@ function siteOrigin(req) {
 
 module.exports = {
   getSql, q, ensureSchema, hashPassword, verifyPassword, createSession, destroySession, currentUser,
-  publicUser, aiUsedToday, todayStr, reserveAi, refundAi, callClaude, extractJson, aiLimit, PAID_AI_PER_DAY, body, clientIp, limited, siteOrigin, FREE_AI_PER_DAY, DEMO_EMAIL,
+  sha, publicUser, aiUsedToday, todayStr, reserveAi, refundAi, callClaude, extractJson, aiLimit, PAID_AI_PER_DAY, body, clientIp, limited, siteOrigin, FREE_AI_PER_DAY, DEMO_EMAIL,
 };

@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
       if (String(s.client_reference_id) !== String(user.id)) return res.status(403).json({ error: 'That payment belongs to a different account.' });
       if (s.payment_status !== 'paid') return res.status(402).json({ error: 'Payment not completed yet.' });
       await L.q(`UPDATE users SET plan = 'personal', paid_at = now(), stripe_session = $1 WHERE id = $2`, [sessionId, user.id]);
-      const rows = await L.q('SELECT id, email, plan, ai_day, ai_count FROM users WHERE id = $1', [user.id]);
+      const rows = await L.q('SELECT id, email, plan, ai_day, ai_count, display_name FROM users WHERE id = $1', [user.id]);
       return res.status(200).json({ user: L.publicUser(rows[0]) });
     }
 
