@@ -1,6 +1,6 @@
-// Comeback offline support: network first (always fresh when online), cached copy when offline.
+// Lumio offline support: network first (always fresh when online), cached copy when offline.
 // API calls are never cached.
-const CACHE = 'comeback-v3';
+const CACHE = 'lumio-v1';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'when.js', 'privacy.html', 'manifest.webmanifest', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {

@@ -1,6 +1,6 @@
-# Comeback (formerly ClinicGuard Personal)
+# Lumio (formerly ClinicGuard Personal)
 
-**Comeback Together: starting is easier together.**
+**Lumio Together: starting is easier together.**
 
 One small first step, a calm five-minute start, and (optionally) one trusted buddy who sees *that* you showed up, never *what* you're working on.
 Type the thing you keep putting off → get one tiny first step → do it in a short focus session → if you get distracted, one tap brings you back to the exact step.
@@ -76,7 +76,7 @@ SELECT id, email, plan, created_at FROM users ORDER BY id;
 - The web app can't see or block other apps or sites. The browser extension is the next step.
 - Tasks don't sync across devices yet.
 
-## Comeback Together (buddy system)
+## Lumio Together (buddy system)
 
 - **Invite** (`#/together`): creates a private, single-use link (`#/join/<token>`), valid 7 days. Only a SHA-256 hash of the token is stored.
 - **Join** (`#/join/<token>`): shows who invited you and exactly what each person can and can't see. Sharing is off unless you tick it.

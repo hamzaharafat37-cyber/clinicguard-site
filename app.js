@@ -1,4 +1,4 @@
-/* Comeback Together: starting is easier together.
+/* Lumio Together: starting is easier together.
    Tasks, steps, sessions and reflections live in this browser (localStorage).
    The server only knows: account, plan, sharing choices, buddy link, and (only while sharing) "focusing now".
    Rule: nothing moves without the user's tap, and every change can be undone. */
@@ -125,7 +125,7 @@
 
   /* ---------- router ---------- */
   const VIEWS = ['home', 'now', 'together', 'progress', 'account', 'join'];
-  const TITLES = { home: 'Comeback · Starting is easier together', now: 'Start · Comeback', together: 'Better Together · Comeback', progress: 'Your beginnings · Comeback', account: 'Account · Comeback', join: 'You\'re invited · Comeback' };
+  const TITLES = { home: 'Lumio · Starting is easier together', now: 'Start · Lumio', together: 'Better Together · Lumio', progress: 'Your beginnings · Lumio', account: 'Account · Lumio', join: 'You\'re invited · Lumio' };
   let current = null, joinToken = null;
   const route = () => {
     const h = location.hash; const isRoute = h.startsWith('#/');
@@ -826,8 +826,8 @@
   });
   $('#shareBtn').addEventListener('click', async () => {
     const url = $('#inviteUrl').value;
-    const text = 'Want to be my Comeback buddy? You\'d just see when I start something, never what. Starting is easier together.';
-    if (navigator.share) { try { await navigator.share({ title: 'Comeback Together', text, url }); } catch { /* canceled */ } }
+    const text = 'Want to be my Lumio buddy? You\'d just see when I start something, never what. Starting is easier together.';
+    if (navigator.share) { try { await navigator.share({ title: 'Lumio Together', text, url }); } catch { /* canceled */ } }
     else { try { await navigator.clipboard.writeText(`${text} ${url}`); toast('Message and link copied.'); } catch { toast('Copy the link above.'); } }
   });
   const setPref = async (body, msg) => {
@@ -874,7 +874,7 @@
     }
     const name = r.data.inviterName;
     $('#joinAv').textContent = name.charAt(0).toUpperCase();
-    $('#joinTitle').textContent = `${name} invited you to be their Comeback buddy`;
+    $('#joinTitle').textContent = `${name} invited you to be their Lumio buddy`;
     $('#joinSub').textContent = 'Starting is easier together. You\'re not a supervisor, just someone who sees that they showed up.';
     $$('.jn').forEach(x => { x.textContent = name; });
     $('#joinBody').hidden = false;
@@ -905,7 +905,7 @@
     if (!joinToken) return;
     await post('/api/together?action=decline', { token: joinToken });
     try { sessionStorage.removeItem('comeback:join'); } catch { /* ignore */ }
-    $('#joinBody').hidden = true; $('#joinTitle').textContent = 'Invite declined.'; $('#joinSub').textContent = 'Nothing was shared. You can still use Comeback on your own.';
+    $('#joinBody').hidden = true; $('#joinTitle').textContent = 'Invite declined.'; $('#joinSub').textContent = 'Nothing was shared. You can still use Lumio on your own.';
   });
 
   /* ---------- PROGRESS: evidence of effort ---------- */
@@ -954,9 +954,9 @@
     const d = new Date(); const pad = n => String(n).padStart(2, '0');
     const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(hh)}${pad(mm)}00`;
     const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
-    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Comeback//Daily start//EN', 'BEGIN:VEVENT', `UID:${uid()}@comeback`, `DTSTAMP:${now}`, `DTSTART:${stamp}`, 'DURATION:PT5M', 'RRULE:FREQ=DAILY',
-      'SUMMARY:One small start (Comeback)', `DESCRIPTION:What's one thing you want to start? ${location.origin}/#/now`, 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:One small start', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'comeback-daily-start.ics'; a.click();
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Lumio//Daily start//EN', 'BEGIN:VEVENT', `UID:${uid()}@lumio`, `DTSTAMP:${now}`, `DTSTART:${stamp}`, 'DURATION:PT5M', 'RRULE:FREQ=DAILY',
+      'SUMMARY:One small start (Lumio)', `DESCRIPTION:What's one thing you want to start? ${location.origin}/#/now`, 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:One small start', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'lumio-daily-start.ics'; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     track('calendar_reminder'); toast('Open the file to add it to your calendar. You can delete it there anytime.');
   });
@@ -1062,8 +1062,8 @@
     ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
   }
   $('#exportBtn').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ app: 'Comeback', exported: new Date().toISOString(), tasks: state.tasks, sessions: state.sessions, reflections: state.reflections, recoveries: state.recoveries }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `comeback-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    const blob = new Blob([JSON.stringify({ app: 'Lumio', exported: new Date().toISOString(), tasks: state.tasks, sessions: state.sessions, reflections: state.reflections, recoveries: state.recoveries }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `lumio-${new Date().toISOString().slice(0, 10)}.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
   let wipeArmed = false;
